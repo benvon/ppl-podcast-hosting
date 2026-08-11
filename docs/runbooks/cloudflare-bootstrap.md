@@ -7,24 +7,23 @@ The following resources were created in Cloudflare on 2026-08-11:
 | Resource | Name | State |
 | --- | --- | --- |
 | R2 staging bucket | `pplstudyguide-staging` | Private; Standard storage |
-| R2 media bucket | `pplstudyguide-media` | Standard storage; no public domain yet |
+| R2 media bucket | `pplstudyguide-media` | Standard storage; custom domain `media.pplstudyguide.com` active |
 | R2 lifecycle | `expire-unreleased-audio` | Expires `staging/` objects after 14 days; aborts incomplete multipart uploads after 7 days |
-| Pages project | `pplstudyguide` | Initial empty-site deployment is live at `https://pplstudyguide.pages.dev` |
+| Pages project | `pplstudyguide` | Public at `https://pplstudyguide.com` (also `https://pplstudyguide.pages.dev`) |
 
 The initial site exposes a cache-revalidated empty RSS document at
 `https://pplstudyguide.pages.dev/feed.xml`. It contains no podcast episodes.
 
-## One-time hostname attachment
+## Public hostnames
 
-Attach these in the Cloudflare dashboard. Both names are in the
-`pplstudyguide.com` zone.
+Both public hostnames are attached in the `pplstudyguide.com` zone:
 
-1. **Pages apex:** Workers & Pages → `pplstudyguide` → Custom domains → Set up
-   a domain → `pplstudyguide.com`.
-2. **R2 media:** R2 → `pplstudyguide-media` → Settings → Custom Domains → Add →
-   `media.pplstudyguide.com`.
-3. Confirm the R2 bucket's `r2.dev` public-development URL remains disabled.
-4. In a private browser window, verify:
+1. **Pages apex:** `pplstudyguide.com` is attached to the `pplstudyguide`
+   Pages project.
+2. **R2 media:** `media.pplstudyguide.com` is attached to the
+   `pplstudyguide-media` bucket.
+3. The R2 bucket's `r2.dev` public-development URL remains disabled.
+4. Verify:
 
    ```text
    https://pplstudyguide.com/

@@ -26,20 +26,21 @@ var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
 
 type showConfig struct {
-	Title        string `yaml:"title"`
-	Description  string `yaml:"description"`
-	Language     string `yaml:"language"`
-	Author       string `yaml:"author"`
-	Copyright    string `yaml:"copyright"`
-	Explicit     bool   `yaml:"explicit"`
-	Category     string `yaml:"category"`
-	Subcategory  string `yaml:"subcategory"`
-	BaseURL      string `yaml:"base_url"`
-	MediaURL     string `yaml:"media_url"`
-	CoverArtURL  string `yaml:"cover_art_url"`
-	OwnerName    string `yaml:"owner_name"`
-	OwnerEmail   string `yaml:"owner_email"`
-	AIDisclosure string `yaml:"ai_disclosure"`
+	Title          string `yaml:"title"`
+	Description    string `yaml:"description"`
+	Language       string `yaml:"language"`
+	Author         string `yaml:"author"`
+	Copyright      string `yaml:"copyright"`
+	Explicit       bool   `yaml:"explicit"`
+	Category       string `yaml:"category"`
+	Subcategory    string `yaml:"subcategory"`
+	BaseURL        string `yaml:"base_url"`
+	MediaURL       string `yaml:"media_url"`
+	CoverArtURL    string `yaml:"cover_art_url"`
+	CoverArtSource string `yaml:"cover_art_source"`
+	OwnerName      string `yaml:"owner_name"`
+	OwnerEmail     string `yaml:"owner_email"`
+	AIDisclosure   string `yaml:"ai_disclosure"`
 }
 
 type episode struct {
@@ -145,6 +146,9 @@ func buildCommand(args []string) error {
 		return err
 	}
 	if err := writeIndex(filepath.Join(*outDir, "index.html"), config, episodes); err != nil {
+		return err
+	}
+	if err := copyCoverArt(*outDir, config.CoverArtSource); err != nil {
 		return err
 	}
 	for _, episode := range episodes {
@@ -338,15 +342,99 @@ func validateConfig(config showConfig, episodeCount int) error {
 	if !strings.HasPrefix(config.MediaURL, "https://") || strings.HasSuffix(config.MediaURL, "/") {
 		return errors.New("media_url must be an https URL without a trailing slash")
 	}
+	if config.CoverArtURL != "" && !strings.HasPrefix(config.CoverArtURL, "https://") {
+		return errors.New("cover_art_url must be an https URL")
+	}
 	if episodeCount > 0 {
 		if strings.TrimSpace(config.CoverArtURL) == "" || strings.TrimSpace(config.OwnerName) == "" || strings.TrimSpace(config.OwnerEmail) == "" {
 			return errors.New("cover_art_url, owner_name, and owner_email are required before publishing an episode")
 		}
-		if !strings.HasPrefix(config.CoverArtURL, "https://") {
-			return errors.New("cover_art_url must be an https URL")
+	}
+	if config.CoverArtSource != "" {
+		if config.CoverArtURL == "" {
+			return errors.New("cover_art_source requires cover_art_url")
+		}
+		if err := validateCoverArtSource(config.CoverArtSource); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func validateCoverArtSource(source string) error {
+	clean := filepath.Clean(source)
+	if filepath.IsAbs(source) || clean == "." || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("cover_art_source must be a repository-relative file path")
+	}
+	data, err := os.ReadFile(clean)
+	if err != nil {
+		return fmt.Errorf("open cover art: %w", err)
+	}
+	width, height, _, err := coverArtDimensions(data)
+	if err != nil {
+		return fmt.Errorf("decode cover art: %w", err)
+	}
+	if width != height || width < 1400 || width > 3000 {
+		return errors.New("cover art must be square and between 1400 and 3000 pixels")
+	}
+	return nil
+}
+
+func coverArtDimensions(data []byte) (int, int, string, error) {
+	if len(data) >= 24 && bytes.Equal(data[:8], []byte{137, 80, 78, 71, 13, 10, 26, 10}) && bytes.Equal(data[12:16], []byte("IHDR")) {
+		width := int(data[16])<<24 | int(data[17])<<16 | int(data[18])<<8 | int(data[19])
+		height := int(data[20])<<24 | int(data[21])<<16 | int(data[22])<<8 | int(data[23])
+		if width < 1 || height < 1 {
+			return 0, 0, "", errors.New("PNG has invalid dimensions")
+		}
+		if data[25] == 4 || data[25] == 6 {
+			return 0, 0, "", errors.New("PNG cover art must not have an alpha channel")
+		}
+		return width, height, "png", nil
+	}
+	if len(data) < 4 || data[0] != 0xff || data[1] != 0xd8 {
+		return 0, 0, "", errors.New("cover art must be a PNG or JPEG")
+	}
+	for offset := 2; offset < len(data); {
+		if data[offset] != 0xff {
+			return 0, 0, "", errors.New("JPEG has an invalid marker")
+		}
+		for offset < len(data) && data[offset] == 0xff {
+			offset++
+		}
+		if offset >= len(data) {
+			break
+		}
+		marker := data[offset]
+		offset++
+		if marker == 0xd8 || marker == 0xd9 || marker == 0x01 || (marker >= 0xd0 && marker <= 0xd7) {
+			continue
+		}
+		if offset+2 > len(data) {
+			break
+		}
+		length := int(data[offset])<<8 | int(data[offset+1])
+		if length < 2 || offset+length > len(data) {
+			return 0, 0, "", errors.New("JPEG has an invalid segment")
+		}
+		if isJPEGStartOfFrame(marker) {
+			if length < 8 {
+				return 0, 0, "", errors.New("JPEG frame header is too short")
+			}
+			height := int(data[offset+3])<<8 | int(data[offset+4])
+			width := int(data[offset+5])<<8 | int(data[offset+6])
+			if width < 1 || height < 1 {
+				return 0, 0, "", errors.New("JPEG has invalid dimensions")
+			}
+			return width, height, "jpeg", nil
+		}
+		offset += length
+	}
+	return 0, 0, "", errors.New("JPEG frame header was not found")
+}
+
+func isJPEGStartOfFrame(marker byte) bool {
+	return (marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7) || (marker >= 0xc9 && marker <= 0xcb) || (marker >= 0xcd && marker <= 0xcf)
 }
 
 func validateEpisode(episode episode) error {
@@ -455,6 +543,30 @@ func writeFile(path string, data []byte) error {
 	return nil
 }
 
+func copyCoverArt(outDir, source string) error {
+	if source == "" {
+		return nil
+	}
+	input, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("open cover art for build: %w", err)
+	}
+	defer input.Close()
+	destination := filepath.Join(outDir, filepath.Clean(source))
+	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
+		return fmt.Errorf("create cover art output directory: %w", err)
+	}
+	output, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("create cover art output: %w", err)
+	}
+	defer output.Close()
+	if _, err := io.Copy(output, input); err != nil {
+		return fmt.Errorf("copy cover art: %w", err)
+	}
+	return nil
+}
+
 func rejectUnsafeOutput(path string) error {
 	clean := filepath.Clean(path)
 	if clean == "." || clean == string(filepath.Separator) || clean == "" {
@@ -545,5 +657,5 @@ type enclosure struct {
 	Type   string `xml:"type,attr"`
 }
 
-const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}li{margin:1rem 0}.meta{color:#4b5563;font-size:.9em}</style></head><body><header><h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/feed.xml">Subscribe with RSS</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><main><h2>Episodes</h2>{{if .Episodes}}<ol>{{range .Episodes}}<li><a href="/episodes/{{.ID}}/"><strong>{{.Title}}</strong></a><div class="meta">{{.PublishedAt.Format "January 2, 2006"}} · {{.Duration}}</div><p>{{.Description}}</p></li>{{end}}</ol>{{else}}<p>The first episode is in production. Please check back soon.</p>{{end}}</main></body></html>`
+const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.cover{display:block;width:min(100%,420px);margin:0 auto 2rem}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}li{margin:1rem 0}.meta{color:#4b5563;font-size:.9em}</style></head><body><header>{{if .Config.CoverArtURL}}<img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art">{{end}}<h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/feed.xml">Subscribe with RSS</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><main><h2>Episodes</h2>{{if .Episodes}}<ol>{{range .Episodes}}<li><a href="/episodes/{{.ID}}/"><strong>{{.Title}}</strong></a><div class="meta">{{.PublishedAt.Format "January 2, 2006"}} · {{.Duration}}</div><p>{{.Description}}</p></li>{{end}}</ol>{{else}}<p>The first episode is in production. Please check back soon.</p>{{end}}</main></body></html>`
 const episodeTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Episode.Title}} — {{.Config.Title}}</title><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}.meta{color:#4b5563;font-size:.9em}table{border-collapse:collapse}td,th{padding:.4rem;border:1px solid #cbd5e1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a></p><h1>{{.Episode.Title}}</h1><p class="meta">Published {{.Episode.PublishedAt.Format "January 2, 2006"}} · {{.Episode.Duration}}</p><p>{{.Episode.Description}}</p><p><a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><main>{{.Episode.NotesHTML}}</main></body></html>`

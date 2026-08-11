@@ -96,9 +96,12 @@ Use separate R2 credentials:
 The Cloudflare bootstrap state and the exact secret names are recorded in
 [`docs/runbooks/cloudflare-bootstrap.md`](docs/runbooks/cloudflare-bootstrap.md).
 
-Before the first release, set a real `cover_art_url`, `owner_name`, and
-`owner_email` in `config/show.yaml`. The cover image must be a stable, public
-square PNG or JPEG suitable for podcast-directory requirements.
+The generic show cover is committed as `pplsg-cover.png`, deployed to
+`https://pplstudyguide.com/pplsg-cover.png`, and referenced in the homepage and
+RSS feed. The build verifies that a configured local cover is a square PNG or
+JPEG between 1400 and 3000 pixels and rejects PNGs with an alpha channel.
+Before the first release, set a real
+`owner_name` and `owner_email` in `config/show.yaml`.
 
 Required GitHub Actions secrets are documented in
 `.github/workflows/publish.yml`. Secrets are never committed to this repository.

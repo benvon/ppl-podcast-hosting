@@ -8,9 +8,11 @@ category: "Education"
 subcategory: "Courses"
 base_url: "https://pplstudyguide.com"
 media_url: "https://media.pplstudyguide.com"
-# Required before publishing the first episode to podcast directories. Use a
-# square PNG or JPEG at a stable public URL.
-cover_art_url: ""
+# The same stable, square, directory-compliant image is served on the homepage
+# and advertised in the RSS feed. Keep the source repository-relative so Pages
+# deploys the exact file after every build.
+cover_art_url: "https://pplstudyguide.com/pplsg-cover.png"
+cover_art_source: "pplsg-cover.png"
 owner_name: ""
 owner_email: ""
 ai_disclosure: >-

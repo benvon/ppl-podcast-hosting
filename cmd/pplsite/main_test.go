@@ -76,6 +76,17 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	}
 }
 
+func TestCoverArtDimensionsRejectsAlphaPNG(t *testing.T) {
+	png := make([]byte, 26)
+	copy(png, []byte{137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 'I', 'H', 'D', 'R'})
+	png[16], png[17] = 0x0b, 0xb8 // 3000 pixels wide
+	png[20], png[21] = 0x0b, 0xb8 // 3000 pixels tall
+	png[25] = 6                   // truecolor with alpha
+	if _, _, _, err := coverArtDimensions(png); err == nil || !strings.Contains(err.Error(), "alpha") {
+		t.Fatalf("coverArtDimensions() error = %v, want alpha rejection", err)
+	}
+}
+
 func buildInto(root string, config showConfig, episodes []loadedEpisode) error {
 	out := filepath.Join(root, "dist")
 	if err := os.MkdirAll(out, 0o755); err != nil {
