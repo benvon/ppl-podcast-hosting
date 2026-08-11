@@ -1,0 +1,91 @@
+name: Publish podcast
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish.yml'
+      - 'cmd/**'
+      - 'config/**'
+      - 'episodes/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'mise.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: podcast-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_STAGING_BUCKET: ${{ secrets.R2_STAGING_BUCKET }}
+      R2_PUBLIC_BUCKET: ${{ secrets.R2_PUBLIC_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_PUBLISH_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_PUBLISH_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.5'
+
+      - name: Validate release contract
+        run: go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes
+
+      - name: Publish verified audio objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r staging_key public_key expected_sha expected_bytes; do
+            [[ -z "$staging_key" ]] && continue
+
+            if aws s3api head-object --bucket "$R2_PUBLIC_BUCKET" --key "$public_key" --endpoint-url "$R2_ENDPOINT" >/dev/null 2>&1; then
+              remote_sha=$(aws s3api head-object --bucket "$R2_PUBLIC_BUCKET" --key "$public_key" --endpoint-url "$R2_ENDPOINT" --query 'Metadata.sha256' --output text)
+              [[ "$remote_sha" == "$expected_sha" ]] || { echo "immutable public key has unexpected checksum: $public_key" >&2; exit 1; }
+              continue
+            fi
+
+            temp_file=$(mktemp)
+            trap 'rm -f "$temp_file"' EXIT
+            aws s3 cp "s3://$R2_STAGING_BUCKET/$staging_key" "$temp_file" --endpoint-url "$R2_ENDPOINT"
+            actual_sha=$(sha256sum "$temp_file" | awk '{print $1}')
+            actual_bytes=$(wc -c < "$temp_file" | tr -d '[:space:]')
+            [[ "$actual_sha" == "$expected_sha" ]] || { echo "staged audio checksum mismatch: $staging_key" >&2; exit 1; }
+            [[ "$actual_bytes" == "$expected_bytes" ]] || { echo "staged audio byte count mismatch: $staging_key" >&2; exit 1; }
+
+            aws s3 cp "$temp_file" "s3://$R2_PUBLIC_BUCKET/$public_key" \
+              --endpoint-url "$R2_ENDPOINT" \
+              --content-type audio/mpeg \
+              --cache-control 'public, max-age=31536000, immutable' \
+              --metadata "sha256=$expected_sha"
+            rm -f "$temp_file"
+            trap - EXIT
+          done < <(go run ./cmd/pplsite publish-plan --episodes episodes)
+
+      - name: Verify public enclosure endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r _ public_key _ _; do
+            [[ -z "$public_key" ]] && continue
+            url="https://media.pplstudyguide.com/$public_key"
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --head "$url" >/dev/null
+            curl --fail --silent --show-error --retry 5 --retry-all-errors --range 0-1023 --output /dev/null "$url"
+          done < <(go run ./cmd/pplsite publish-plan --episodes episodes)
+
+      - name: Build homepage, show notes, and RSS feed
+        run: go run ./cmd/pplsite build --config config/show.yaml --episodes episodes --out dist
+
+      - name: Deploy static site to Cloudflare Pages
+        run: npx --yes wrangler@4 pages deploy dist --project-name pplstudyguide --branch main

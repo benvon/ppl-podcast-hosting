@@ -1,0 +1,15 @@
+[tools]
+go = "1.26.5"
+
+[tasks.validate]
+description = "Validate show configuration and every committed episode"
+run = "go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes"
+
+[tasks.build]
+description = "Build the static homepage, show notes, and RSS feed"
+depends = ["validate"]
+run = "go run ./cmd/pplsite build --config config/show.yaml --episodes episodes --out dist"
+
+[tasks.test]
+description = "Run publisher tests"
+run = "go test ./..."

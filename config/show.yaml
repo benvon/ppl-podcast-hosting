@@ -1,0 +1,21 @@
+title: "PPL Study Guide"
+description: "A source-conscious study companion for U.S. private-pilot airplane learners."
+language: "en-US"
+author: "PPL Study Guide"
+copyright: "Copyright 2026 PPL Study Guide"
+explicit: false
+category: "Education"
+subcategory: "Courses"
+base_url: "https://pplstudyguide.com"
+media_url: "https://media.pplstudyguide.com"
+# Required before publishing the first episode to podcast directories. Use a
+# square PNG or JPEG at a stable public URL.
+cover_art_url: ""
+owner_name: ""
+owner_email: ""
+ai_disclosure: >-
+  This podcast uses AI-assisted production. Each episode's factual content is
+  reviewed against cited source material before audio production, but it is not
+  reviewed by a certificated flight instructor and is not flight instruction.
+  Always use current FAA information, applicable regulations, and your
+  aircraft's approved documents.

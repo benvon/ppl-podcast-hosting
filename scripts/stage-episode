@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: $0 /absolute/path/to/local-release-directory" >&2
+  exit 64
+fi
+
+release_dir=$1
+if [[ ! -d "$release_dir" || ! -f "$release_dir/episode.yaml" || ! -f "$release_dir/show-notes.md" || ! -f "$release_dir/audio.mp3" ]]; then
+  echo "release directory must contain episode.yaml, show-notes.md, and audio.mp3" >&2
+  exit 64
+fi
+
+: "${R2_ENDPOINT:?set R2_ENDPOINT to https://<account-id>.r2.cloudflarestorage.com}"
+: "${PPL_R2_STAGING_BUCKET:?set PPL_R2_STAGING_BUCKET}"
+: "${AWS_ACCESS_KEY_ID:?set AWS_ACCESS_KEY_ID for the limited R2 staging credential}"
+: "${AWS_SECRET_ACCESS_KEY:?set AWS_SECRET_ACCESS_KEY for the limited R2 staging credential}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-auto}"
+
+if ! command -v aws >/dev/null 2>&1; then
+  echo "AWS CLI v2 is required for S3-compatible R2 uploads" >&2
+  exit 69
+fi
+
+prepare_output=$(mise exec -- go run ./cmd/pplsite prepare --source "$release_dir" --audio "$release_dir/audio.mp3" --out episodes)
+printf '%s\n' "$prepare_output"
+
+episode_id=$(awk -F= '$1 == "episode_id" { print $2 }' <<<"$prepare_output")
+staging_key=$(awk -F= '$1 == "staging_key" { print $2 }' <<<"$prepare_output")
+sha256=$(awk -F= '$1 == "sha256" { print $2 }' <<<"$prepare_output")
+
+if [[ -z "$episode_id" || -z "$staging_key" || -z "$sha256" ]]; then
+  echo "publisher did not return the expected release metadata" >&2
+  exit 70
+fi
+
+if aws s3api head-object --bucket "$PPL_R2_STAGING_BUCKET" --key "$staging_key" --endpoint-url "$R2_ENDPOINT" >/dev/null 2>&1; then
+  echo "refusing to replace existing staging object: $staging_key" >&2
+  echo "remove the newly generated episodes/$episode_id directory only after confirming it is not part of another release" >&2
+  exit 65
+fi
+
+aws s3 cp "$release_dir/audio.mp3" "s3://$PPL_R2_STAGING_BUCKET/$staging_key" \
+  --endpoint-url "$R2_ENDPOINT" \
+  --content-type audio/mpeg \
+  --cache-control 'no-store' \
+  --metadata "sha256=$sha256"
+
+echo ""
+echo "Staged private audio and created episodes/$episode_id/."
+echo "Review it, then create a release PR. Merging that PR into main publishes the episode."
