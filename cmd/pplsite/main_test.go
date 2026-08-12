@@ -74,6 +74,13 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if !strings.Contains(string(page), "Episode notes") {
 		t.Fatalf("show notes were not rendered")
 	}
+	homepage, err := os.ReadFile(filepath.Join(root, "dist", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") {
+		t.Fatalf("homepage does not link to the open source production materials")
+	}
 }
 
 func TestCoverArtDimensionsRejectsAlphaPNG(t *testing.T) {
