@@ -18,12 +18,14 @@ import (
 	"time"
 
 	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
 	"gopkg.in/yaml.v3"
 )
 
 var episodeIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,62}$`)
 var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
+var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
 
 type showConfig struct {
 	Title          string `yaml:"title"`
@@ -268,7 +270,7 @@ func loadEpisodes(dir string) ([]loadedEpisode, error) {
 			return nil, fmt.Errorf("read show notes for %q: %w", episode.ID, err)
 		}
 		var html bytes.Buffer
-		if err := goldmark.Convert(notes, &html); err != nil {
+		if err := showNotesMarkdown.Convert(notes, &html); err != nil {
 			return nil, fmt.Errorf("render show notes for %q: %w", episode.ID, err)
 		}
 		episodes = append(episodes, loadedEpisode{episode: episode, NotesHTML: template.HTML(html.String())})
