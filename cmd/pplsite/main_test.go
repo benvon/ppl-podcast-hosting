@@ -83,6 +83,30 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	}
 }
 
+func TestLoadEpisodesRendersPipeTables(t *testing.T) {
+	root := t.TempDir()
+	episodeDir := filepath.Join(root, "first")
+	if err := os.MkdirAll(episodeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(episodeDir, "episode.yaml"), []byte("id: first\n"))
+	writeTestFile(t, filepath.Join(episodeDir, "show-notes.md"), []byte(`| Topic | Source |
+| --- | --- |
+| ADM | FAA |
+`))
+
+	episodes, err := loadEpisodes(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(episodes) != 1 {
+		t.Fatalf("loadEpisodes() loaded %d episodes, want 1", len(episodes))
+	}
+	if !strings.Contains(string(episodes[0].NotesHTML), "<table>") || !strings.Contains(string(episodes[0].NotesHTML), "<th>Topic</th>") {
+		t.Fatalf("pipe table was not rendered as HTML table: %s", episodes[0].NotesHTML)
+	}
+}
+
 func TestCoverArtDimensionsRejectsAlphaPNG(t *testing.T) {
 	png := make([]byte, 26)
 	copy(png, []byte{137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 'I', 'H', 'D', 'R'})
