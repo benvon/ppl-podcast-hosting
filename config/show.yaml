@@ -13,8 +13,8 @@ media_url: "https://media.pplstudyguide.com"
 # deploys the exact file after every build.
 cover_art_url: "https://pplstudyguide.com/pplsg-cover.png"
 cover_art_source: "pplsg-cover.png"
-owner_name: ""
-owner_email: ""
+owner_name: "Ben Vaughan"
+owner_email: "feedback@pplstudyguide.com"
 ai_disclosure: >-
   This podcast uses AI-assisted production. Each episode's factual content is
   reviewed against cited source material before audio production, but it is not
