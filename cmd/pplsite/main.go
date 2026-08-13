@@ -27,6 +27,8 @@ var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
 var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
 
+const episodesPerPage = 10
+
 type showConfig struct {
 	Title          string `yaml:"title"`
 	Description    string `yaml:"description"`
@@ -147,10 +149,22 @@ func buildCommand(args []string) error {
 	if err := writeFeed(filepath.Join(*outDir, "feed.xml"), config, episodes); err != nil {
 		return err
 	}
-	if err := writeIndex(filepath.Join(*outDir, "index.html"), config, episodes); err != nil {
+	if err := writeIndex(filepath.Join(*outDir, "index.html"), config); err != nil {
 		return err
 	}
 	if err := copyCoverArt(*outDir, config.CoverArtSource); err != nil {
+		return err
+	}
+	if err := copyStaticAssets(*outDir); err != nil {
+		return err
+	}
+	if err := writeEpisodeArchive(*outDir, config, episodes); err != nil {
+		return err
+	}
+	if err := writeSitemap(filepath.Join(*outDir, "sitemap.xml"), config, episodes); err != nil {
+		return err
+	}
+	if err := writeRobots(filepath.Join(*outDir, "robots.txt"), config); err != nil {
 		return err
 	}
 	for _, episode := range episodes {
@@ -509,18 +523,93 @@ func writeFeed(path string, config showConfig, episodes []loadedEpisode) error {
 	return writeFile(path, append([]byte(xml.Header), data...))
 }
 
-func writeIndex(path string, config showConfig, episodes []loadedEpisode) error {
+func writeIndex(path string, config showConfig) error {
 	return executeTemplate(path, indexTemplate, struct {
-		Config   showConfig
-		Episodes []loadedEpisode
-	}{config, episodes})
+		Config       showConfig
+		CanonicalURL string
+	}{config, config.BaseURL + "/"})
 }
 
 func writeEpisodePage(path string, config showConfig, episode loadedEpisode) error {
 	return executeTemplate(path, episodeTemplate, struct {
-		Config  showConfig
-		Episode loadedEpisode
-	}{config, episode})
+		Config       showConfig
+		Episode      loadedEpisode
+		CanonicalURL string
+	}{config, episode, fmt.Sprintf("%s/episodes/%s/", config.BaseURL, episode.ID)})
+}
+
+func writeEpisodeArchive(outDir string, config showConfig, episodes []loadedEpisode) error {
+	pageCount := episodeArchivePageCount(len(episodes))
+	for page := 1; page <= pageCount; page++ {
+		start := (page - 1) * episodesPerPage
+		end := min(start+episodesPerPage, len(episodes))
+		pageEpisodes := episodes[start:end]
+		data := archivePage{Config: config, Episodes: pageEpisodes, Page: page, PageCount: pageCount, CanonicalURL: config.BaseURL + archivePageURL(page)}
+		if page > 1 {
+			data.PreviousURL = archivePageURL(page - 1)
+		}
+		if page < pageCount {
+			data.NextURL = archivePageURL(page + 1)
+		}
+		if err := executeTemplate(filepath.Join(outDir, archivePagePath(page)), archiveTemplate, data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type archivePage struct {
+	Config       showConfig
+	Episodes     []loadedEpisode
+	Page         int
+	PageCount    int
+	PreviousURL  string
+	NextURL      string
+	CanonicalURL string
+}
+
+func episodeArchivePageCount(episodeCount int) int {
+	pageCount := (episodeCount + episodesPerPage - 1) / episodesPerPage
+	if pageCount == 0 {
+		return 1
+	}
+	return pageCount
+}
+
+func archivePagePath(page int) string {
+	if page == 1 {
+		return filepath.Join("episodes", "index.html")
+	}
+	return filepath.Join("episodes", "page", fmt.Sprint(page), "index.html")
+}
+
+func archivePageURL(page int) string {
+	if page == 1 {
+		return "/episodes/"
+	}
+	return fmt.Sprintf("/episodes/page/%d/", page)
+}
+
+func writeSitemap(path string, config showConfig, episodes []loadedEpisode) error {
+	urls := []sitemapURL{{Location: config.BaseURL + "/"}}
+	for page := 1; page <= episodeArchivePageCount(len(episodes)); page++ {
+		urls = append(urls, sitemapURL{Location: config.BaseURL + archivePageURL(page)})
+	}
+	for _, episode := range episodes {
+		urls = append(urls, sitemapURL{
+			Location:       fmt.Sprintf("%s/episodes/%s/", config.BaseURL, episode.ID),
+			LastModifiedAt: episode.PublishedAt.Format("2006-01-02"),
+		})
+	}
+	data, err := xml.MarshalIndent(sitemap{XMLNS: "http://www.sitemaps.org/schemas/sitemap/0.9", URLs: urls}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("render sitemap: %w", err)
+	}
+	return writeFile(path, append([]byte(xml.Header), data...))
+}
+
+func writeRobots(path string, config showConfig) error {
+	return writeFile(path, []byte(fmt.Sprintf("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n", config.BaseURL)))
 }
 
 func executeTemplate(path, source string, data any) error {
@@ -567,6 +656,14 @@ func copyCoverArt(outDir, source string) error {
 		return fmt.Errorf("copy cover art: %w", err)
 	}
 	return nil
+}
+
+func copyStaticAssets(outDir string) error {
+	data, err := os.ReadFile(filepath.Join("static", "favicon.png"))
+	if err != nil {
+		return fmt.Errorf("read favicon: %w", err)
+	}
+	return writeFile(filepath.Join(outDir, "favicon.png"), data)
 }
 
 func rejectUnsafeOutput(path string) error {
@@ -658,6 +755,16 @@ type enclosure struct {
 	Length string `xml:"length,attr"`
 	Type   string `xml:"type,attr"`
 }
+type sitemap struct {
+	XMLName xml.Name     `xml:"urlset"`
+	XMLNS   string       `xml:"xmlns,attr"`
+	URLs    []sitemapURL `xml:"url"`
+}
+type sitemapURL struct {
+	Location       string `xml:"loc"`
+	LastModifiedAt string `xml:"lastmod,omitempty"`
+}
 
-const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.cover{display:block;width:min(100%,420px);margin:0 auto 2rem}.notice,.source{padding:1rem;border-left:4px solid #0284c7}.notice{background:#eff6ff}.source{background:#f8fafc;margin:1.5rem 0}li{margin:1rem 0}.meta{color:#4b5563;font-size:.9em}</style></head><body><header>{{if .Config.CoverArtURL}}<img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art">{{end}}<h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/feed.xml">Subscribe with RSS</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><section class="source" aria-labelledby="source-materials"><h2 id="source-materials">Open source production materials</h2><p>The podcast’s production material is open source. You are welcome to review it, offer feedback, or contribute improvements on <a href="https://github.com/benvon/ppl-podcast">GitHub</a>.</p></section><main><h2>Episodes</h2>{{if .Episodes}}<ol>{{range .Episodes}}<li><a href="/episodes/{{.ID}}/"><strong>{{.Title}}</strong></a><div class="meta">{{.PublishedAt.Format "January 2, 2006"}} · {{.Duration}}</div><p>{{.Description}}</p></li>{{end}}</ol>{{else}}<p>The first episode is in production. Please check back soon.</p>{{end}}</main></body></html>`
-const episodeTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Episode.Title}} — {{.Config.Title}}</title><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}.meta{color:#4b5563;font-size:.9em}table{border-collapse:collapse}td,th{padding:.4rem;border:1px solid #cbd5e1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a></p><h1>{{.Episode.Title}}</h1><p class="meta">Published {{.Episode.PublishedAt.Format "January 2, 2006"}} · {{.Episode.Duration}}</p><p>{{.Episode.Description}}</p><p><a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><main>{{.Episode.NotesHTML}}</main></body></html>`
+const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="website"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="{{.Config.Title}}"><meta property="og:description" content="{{.Config.Description}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Config.Title}}"><meta name="twitter:description" content="{{.Config.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.cover{display:block;width:min(100%,420px);margin:0 auto 2rem}.notice,.source{padding:1rem;border-left:4px solid #0284c7}.notice{background:#eff6ff}.source{background:#f8fafc;margin:1.5rem 0}</style></head><body><header>{{if .Config.CoverArtURL}}<img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art">{{end}}<h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/episodes/">Browse episodes</a> · <a href="/feed.xml">Subscribe with RSS</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><section class="source" aria-labelledby="source-materials"><h2 id="source-materials">Open source production materials</h2><p>The podcast’s production material is open source. You are welcome to review it, offer feedback, or contribute improvements on <a href="https://github.com/benvon/ppl-podcast">GitHub</a>.</p></section></body></html>`
+const archiveTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Episodes — {{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="website"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="Episodes — {{.Config.Title}}"><meta property="og:description" content="{{.Config.Description}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Episodes — {{.Config.Title}}"><meta name="twitter:description" content="{{.Config.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.meta{color:#4b5563;font-size:.9em}li{margin:1rem 0}.pagination{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}.pagination span{flex:1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a></p><h1>Episodes</h1><p><a href="/feed.xml">Subscribe with RSS</a></p></header><main>{{if .Episodes}}<ol>{{range .Episodes}}<li><a href="/episodes/{{.ID}}/"><strong>{{.Title}}</strong></a><div class="meta">{{.PublishedAt.Format "January 2, 2006"}} · {{.Duration}}</div><p>{{.Description}}</p></li>{{end}}</ol>{{else}}<p>The first episode is in production. Please check back soon.</p>{{end}}{{if gt .PageCount 1}}<nav class="pagination" aria-label="Episode pages">{{if .PreviousURL}}<a href="{{.PreviousURL}}">Newer episodes</a>{{else}}<span></span>{{end}}<span>Page {{.Page}} of {{.PageCount}}</span>{{if .NextURL}}<a href="{{.NextURL}}">Older episodes</a>{{else}}<span></span>{{end}}</nav>{{end}}</main></body></html>`
+const episodeTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Episode.Title}} — {{.Config.Title}}</title><meta name="description" content="{{.Episode.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="article"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="{{.Episode.Title}}"><meta property="og:description" content="{{.Episode.Description}}"><meta property="article:published_time" content="{{.Episode.PublishedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta property="og:audio" content="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}"><meta property="og:audio:type" content="{{.Episode.Audio.ContentType}}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Episode.Title}}"><meta name="twitter:description" content="{{.Episode.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}.meta{color:#4b5563;font-size:.9em}audio{display:block;width:100%;margin:1.5rem 0}table{border-collapse:collapse}td,th{padding:.4rem;border:1px solid #cbd5e1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a> · <a href="/episodes/">Episodes</a></p><h1>{{.Episode.Title}}</h1><p class="meta">Published {{.Episode.PublishedAt.Format "January 2, 2006"}} · {{.Episode.Duration}}</p><p>{{.Episode.Description}}</p><audio controls preload="metadata"><source src="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}" type="{{.Episode.Audio.ContentType}}">Your browser does not support the audio player. <a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a>.</audio><p><a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><main>{{.Episode.NotesHTML}}</main></body></html>`

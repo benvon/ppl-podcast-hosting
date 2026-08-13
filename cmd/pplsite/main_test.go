@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -71,15 +72,96 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(page), "Episode notes") {
+	if !strings.Contains(string(page), "Episode notes") || !strings.Contains(string(page), "<audio controls") || !strings.Contains(string(page), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(page), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/first/\"") || !strings.Contains(string(page), "property=\"og:type\" content=\"article\"") {
 		t.Fatalf("show notes were not rendered")
 	}
 	homepage, err := os.ReadFile(filepath.Join(root, "dist", "index.html"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") {
+	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") {
 		t.Fatalf("homepage does not link to the open source production materials")
+	}
+	archive, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(archive), "Episode first") || !strings.Contains(string(archive), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/\"") {
+		t.Fatalf("episode archive does not contain the episode: %s", archive)
+	}
+	sitemap, err := os.ReadFile(filepath.Join(root, "dist", "sitemap.xml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(sitemap), "https://pplstudyguide.com/episodes/first/") || !strings.Contains(string(sitemap), "<lastmod>2026-08-15</lastmod>") {
+		t.Fatalf("sitemap does not contain the published episode: %s", sitemap)
+	}
+	robots, err := os.ReadFile(filepath.Join(root, "dist", "robots.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(robots) != "User-agent: *\nAllow: /\n\nSitemap: https://pplstudyguide.com/sitemap.xml\n" {
+		t.Fatalf("unexpected robots.txt: %s", robots)
+	}
+}
+
+func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
+	root := t.TempDir()
+	episodes := make([]loadedEpisode, 0, episodesPerPage+1)
+	for number := episodesPerPage + 1; number >= 1; number-- {
+		episode := testEpisode(fmt.Sprintf("episode-%02d", number), fmt.Sprintf("guid-%02d", number))
+		episode.Title = fmt.Sprintf("Episode %02d", number)
+		episode.PublishedAt = time.Date(2026, 8, number, 14, 0, 0, 0, time.UTC)
+		episodes = append(episodes, episode)
+	}
+	if err := writeEpisodeArchive(root, testConfig(), episodes); err != nil {
+		t.Fatal(err)
+	}
+	first, err := os.ReadFile(filepath.Join(root, "episodes", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(first), "Episode 11") || strings.Contains(string(first), "Episode 01") || !strings.Contains(string(first), "href=\"/episodes/page/2/\"") {
+		t.Fatalf("first archive page has incorrect pagination: %s", first)
+	}
+	second, err := os.ReadFile(filepath.Join(root, "episodes", "page", "2", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(second), "Episode 01") || strings.Contains(string(second), "Episode 02") || !strings.Contains(string(second), "href=\"/episodes/\"") {
+		t.Fatalf("second archive page has incorrect pagination: %s", second)
+	}
+}
+
+func TestCopyStaticAssetsWritesFavicon(t *testing.T) {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repositoryRoot := filepath.Clean(filepath.Join(workingDir, "..", ".."))
+	if err := os.Chdir(repositoryRoot); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chdir(workingDir); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	root := t.TempDir()
+	if err := copyStaticAssets(root); err != nil {
+		t.Fatal(err)
+	}
+	written, err := os.ReadFile(filepath.Join(root, "favicon.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, err := os.ReadFile(filepath.Join("static", "favicon.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(written) != string(source) {
+		t.Fatal("built favicon does not match the static source")
 	}
 }
 
@@ -126,7 +208,16 @@ func buildInto(root string, config showConfig, episodes []loadedEpisode) error {
 	if err := writeFeed(filepath.Join(out, "feed.xml"), config, episodes); err != nil {
 		return err
 	}
-	if err := writeIndex(filepath.Join(out, "index.html"), config, episodes); err != nil {
+	if err := writeIndex(filepath.Join(out, "index.html"), config); err != nil {
+		return err
+	}
+	if err := writeEpisodeArchive(out, config, episodes); err != nil {
+		return err
+	}
+	if err := writeSitemap(filepath.Join(out, "sitemap.xml"), config, episodes); err != nil {
+		return err
+	}
+	if err := writeRobots(filepath.Join(out, "robots.txt"), config); err != nil {
 		return err
 	}
 	return writeEpisodePage(filepath.Join(out, "episodes", episodes[0].ID, "index.html"), config, episodes[0])
