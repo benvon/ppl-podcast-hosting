@@ -1,0 +1,15 @@
+id: core-02
+guid: pplstudyguide.com:core-02
+title: 'Principles of Flight: Lift, Drag, and Angle of Attack'
+description: A source-conscious introduction to relative wind, angle of attack, lift, and drag for private-pilot airplane learners, with the foundations for later slow-flight, stall, and performance study.
+published_at: 2026-08-13T20:56:32Z
+duration: "00:33:28"
+season: 1
+number: 2
+explicit: false
+audio:
+    staging_key: staging/core-02/411a92b54515d1f6348cfec8036007ae01b7153f6bee2abe8836ed69f09cd06b.mp3
+    public_key: audio/core-02-411a92b54515d1f6.mp3
+    sha256: 411a92b54515d1f6348cfec8036007ae01b7153f6bee2abe8836ed69f09cd06b
+    bytes: 40181325
+    content_type: audio/mpeg
