@@ -8,6 +8,7 @@ on:
       - 'cmd/**'
       - 'config/**'
       - 'episodes/**'
+      - 'static/**'
       - 'go.mod'
       - 'go.sum'
       - 'mise.toml'
