@@ -1,0 +1,15 @@
+id: core-03
+guid: pplstudyguide.com:core-03
+title: Stalls, Load Factor, and Spin Avoidance
+description: A source-conscious study of stalls, load factor, coordination, and spin avoidance for private-pilot airplane learners, connecting published one-G stall speeds to the changing aerodynamic demand on the wing.
+published_at: 2026-08-14T19:17:58Z
+duration: "00:32:55"
+season: 1
+number: 3
+explicit: false
+audio:
+    staging_key: staging/core-03/4e7f4440d499a134d789ba225ae587a7affa032f3afa42979b2d8d930d050dcf.mp3
+    public_key: audio/core-03-4e7f4440d499a134.mp3
+    sha256: 4e7f4440d499a134d789ba225ae587a7affa032f3afa42979b2d8d930d050dcf
+    bytes: 39499725
+    content_type: audio/mpeg
