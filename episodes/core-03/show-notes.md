@@ -4,6 +4,10 @@
 **Version:** 0.1.0
 **Source verification:** All nine cited FAA/ACS sources and 22 mapped claims passed publication-day link and relevance validation on 2026-08-14.
 
+## Production notice
+
+This podcast uses AI-assisted production. The voices in this episode are AI-generated, not human speakers. Each episode's factual content is reviewed against cited source material before audio production, but it is not reviewed by a certificated flight instructor. This podcast is not flight or maneuver instruction. Always use current FAA information, applicable regulations, and your aircraft's approved documents.
+
 ## Visual aids
 
 - [Critical angle of attack and stall — Airplane Flying Handbook Chapter 5, Figure 5-8, p. 5-12](https://www.faa.gov/sites/faa.gov/files/regulations_policies/handbooks_manuals/aviation/airplane_handbook/06_afh_ch5.pdf#page=11)
