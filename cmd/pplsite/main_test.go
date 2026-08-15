@@ -110,7 +110,8 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	episodes := make([]loadedEpisode, 0, episodesPerPage+1)
 	for number := episodesPerPage + 1; number >= 1; number-- {
 		episode := testEpisode(fmt.Sprintf("episode-%02d", number), fmt.Sprintf("guid-%02d", number))
-		episode.Title = fmt.Sprintf("Episode %02d", number)
+		episode.Title = fmt.Sprintf("Test title %02d", number)
+		episode.Number = number
 		episode.PublishedAt = time.Date(2026, 8, number, 14, 0, 0, 0, time.UTC)
 		episodes = append(episodes, episode)
 	}
@@ -121,14 +122,14 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(first), "Episode 11") || strings.Contains(string(first), "Episode 01") || !strings.Contains(string(first), "href=\"/episodes/page/2/\"") {
+	if !strings.Contains(string(first), "<ul class=\"episode-list\" role=\"list\">") || strings.Contains(string(first), "<ol>") || !strings.Contains(string(first), "Episode 11: Test title 11") || strings.Contains(string(first), "Episode 01: Test title 01") || !strings.Contains(string(first), "href=\"/episodes/page/2/\"") {
 		t.Fatalf("first archive page has incorrect pagination: %s", first)
 	}
 	second, err := os.ReadFile(filepath.Join(root, "episodes", "page", "2", "index.html"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(second), "Episode 01") || strings.Contains(string(second), "Episode 02") || !strings.Contains(string(second), "href=\"/episodes/\"") {
+	if !strings.Contains(string(second), "Episode 1: Test title 01") || strings.Contains(string(second), "Episode 2: Test title 02") || !strings.Contains(string(second), "href=\"/episodes/\"") {
 		t.Fatalf("second archive page has incorrect pagination: %s", second)
 	}
 }
