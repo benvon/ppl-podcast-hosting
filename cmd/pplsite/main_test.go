@@ -122,7 +122,7 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(first), "<ul class=\"episode-list\">") || strings.Contains(string(first), "<ol>") || !strings.Contains(string(first), "Episode 11: Test title 11") || strings.Contains(string(first), "Episode 01: Test title 01") || !strings.Contains(string(first), "href=\"/episodes/page/2/\"") {
+	if !strings.Contains(string(first), "<ul class=\"episode-list\" role=\"list\">") || strings.Contains(string(first), "<ol>") || !strings.Contains(string(first), "Episode 11: Test title 11") || strings.Contains(string(first), "Episode 01: Test title 01") || !strings.Contains(string(first), "href=\"/episodes/page/2/\"") {
 		t.Fatalf("first archive page has incorrect pagination: %s", first)
 	}
 	second, err := os.ReadFile(filepath.Join(root, "episodes", "page", "2", "index.html"))
