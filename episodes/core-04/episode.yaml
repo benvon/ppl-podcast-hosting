@@ -1,0 +1,15 @@
+id: core-04
+guid: pplstudyguide.com:core-04
+title: Flight Controls, Stability, and Left-Turning Tendencies
+description: A source-conscious study of flight controls, stability, and left-turning tendencies for private-pilot airplane learners, connecting control-surface airflow to coordination and condition-dependent directional control.
+published_at: 2026-08-16T22:28:12Z
+duration: "00:32:57"
+season: 1
+number: 4
+explicit: false
+audio:
+    staging_key: staging/core-04/13a90655815c2d26a483a26624da8ea940f38a7b3b2f3b0374d51f04c0c0f211.mp3
+    public_key: audio/core-04-13a90655815c2d26.mp3
+    sha256: 13a90655815c2d26a483a26624da8ea940f38a7b3b2f3b0374d51f04c0c0f211
+    bytes: 39533805
+    content_type: audio/mpeg
