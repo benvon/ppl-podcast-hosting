@@ -57,7 +57,8 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	root := t.TempDir()
 	config := testConfig()
 	episode := testEpisode("first", "pplstudyguide.com:first")
-	episode.NotesHTML = "<h1>Episode notes</h1>"
+	episode.NotesHTML = "<h1>Episode notes</h1><p><a href=\"https://example.com/diagram\">Diagram</a></p>"
+	episode.PlayerNotesText = playerNotesText(episode.Description, string(episode.NotesHTML))
 	if err := buildInto(root, config, []loadedEpisode{episode}); err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(feed), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(feed), "isPermaLink=\"false\"") {
+	if !strings.Contains(string(feed), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(feed), "isPermaLink=\"false\"") || !strings.Contains(string(feed), "Study materials and visual aids:") || !strings.Contains(string(feed), "https://example.com/diagram") || !strings.Contains(string(feed), "<content:encoded>&lt;h1&gt;Episode notes&lt;/h1&gt;") {
 		t.Fatalf("unexpected feed: %s", feed)
 	}
 	page, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "first", "index.html"))
@@ -102,6 +103,15 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	}
 	if string(robots) != "User-agent: *\nAllow: /\n\nSitemap: https://pplstudyguide.com/sitemap.xml\n" {
 		t.Fatalf("unexpected robots.txt: %s", robots)
+	}
+}
+
+func TestPlayerNotesTextIncludesOnlyUniqueHTTPSStudyLinks(t *testing.T) {
+	notes := `<p><a href="https://example.com/diagram?a=1&amp;b=2">Diagram <strong>one</strong></a></p><p><a href="mailto:feedback@example.com">Feedback</a></p><p><a href="https://example.com/diagram?a=1&amp;b=2">Duplicate</a></p>`
+	got := playerNotesText("A concise synopsis.", notes)
+	want := "A concise synopsis.\n\nStudy materials and visual aids:\n- Diagram one: https://example.com/diagram?a=1&b=2"
+	if got != want {
+		t.Fatalf("playerNotesText() = %q, want %q", got, want)
 	}
 }
 

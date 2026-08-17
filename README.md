@@ -57,7 +57,12 @@ audio: {}
 ```
 
 Keep show notes in the listener-facing format defined by the production plan.
-The generator renders Markdown without allowing raw HTML.
+The generator renders Markdown without allowing raw HTML. It publishes the
+episode synopsis plus every unique HTTPS link from those rendered notes in the
+RSS episode description and `itunes:summary`, under **Study materials and
+visual aids**. It also includes the complete rendered notes in
+`content:encoded` for podcast players that support rich notes. Give each link a
+short, descriptive label: it becomes the player-facing study-material label.
 
 ## Local prerequisites
 
