@@ -1,0 +1,15 @@
+id: core-05
+guid: pplstudyguide.com:core-05
+title: Piston Engines, Propellers, and Combustion
+description: A source-conscious study of piston engines, propellers, and combustion for private-pilot airplane learners, connecting controlled cylinder pressure to thrust, power indications, and ignition safety.
+published_at: 2026-08-17T23:03:28Z
+duration: "00:43:02"
+season: 1
+number: 5
+explicit: false
+audio:
+    staging_key: staging/core-05/8a78c22efe359d87e0e5a310cb3aa2fb2326c19e75df48e5e2331439738a815f.mp3
+    public_key: audio/core-05-8a78c22efe359d87.mp3
+    sha256: 8a78c22efe359d87e0e5a310cb3aa2fb2326c19e75df48e5e2331439738a815f
+    bytes: 51642204
+    content_type: audio/mpeg
