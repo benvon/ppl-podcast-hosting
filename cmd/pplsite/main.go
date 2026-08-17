@@ -26,7 +26,7 @@ import (
 var episodeIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,62}$`)
 var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
-var showNotesLinkPattern = regexp.MustCompile(`(?s)<a href="(https://[^"]+)">(.+?)</a>`)
+var showNotesLinkPattern = regexp.MustCompile(`(?s)<a\b[^>]*\bhref="(https://[^"]+)"[^>]*>(.+?)</a>`)
 var htmlTagPattern = regexp.MustCompile(`<[^>]+>`)
 var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
 
@@ -300,7 +300,8 @@ func loadEpisodes(dir string) ([]loadedEpisode, error) {
 }
 
 func hostingShowNotes(notes []byte) []byte {
-	lines := strings.Split(string(notes), "\n")
+	normalizedNotes := strings.ReplaceAll(string(notes), "\r\n", "\n")
+	lines := strings.Split(normalizedNotes, "\n")
 	withoutDuplicateNotice := make([]string, 0, len(lines))
 	skippingNotice := false
 	for _, line := range lines {

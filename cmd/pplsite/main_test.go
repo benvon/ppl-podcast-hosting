@@ -108,7 +108,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 }
 
 func TestPlayerNotesTextIncludesOnlyUniqueHTTPSStudyLinks(t *testing.T) {
-	notes := `<p><a href="https://example.com/diagram?a=1&amp;b=2">Diagram <strong>one</strong></a></p><p><a href="mailto:feedback@example.com">Feedback</a></p><p><a href="https://example.com/diagram?a=1&amp;b=2">Duplicate</a></p>`
+	notes := `<p><a href="https://example.com/diagram?a=1&amp;b=2" title="FAA source">Diagram <strong>one</strong></a></p><p><a href="mailto:feedback@example.com">Feedback</a></p><p><a href="https://example.com/diagram?a=1&amp;b=2">Duplicate</a></p>`
 	got := playerNotesText("A concise synopsis.", notes)
 	want := "A concise synopsis.\n\nStudy materials and visual aids:\n- Diagram one: https://example.com/diagram?a=1&b=2"
 	if got != want {
@@ -117,20 +117,7 @@ func TestPlayerNotesTextIncludesOnlyUniqueHTTPSStudyLinks(t *testing.T) {
 }
 
 func TestHostingShowNotesKeepsOneDisclosureAndFormatsMetadata(t *testing.T) {
-	notes := []byte(`# Title
-
-**Episode:** 4
-**Version:** 1.0.0
-**Source verification:** Reviewed today.
-
-## Production notice
-
-This duplicate notice should not appear on the episode page.
-
-## In this episode
-
-- A useful lesson.
-`)
+	notes := []byte("# Title\r\n\r\n**Episode:** 4\r\n**Version:** 1.0.0\r\n**Source verification:** Reviewed today.\r\n\r\n## Production notice\r\n\r\nThis duplicate notice should not appear on the episode page.\r\n\r\n## In this episode\r\n\r\n- A useful lesson.\r\n")
 	formatted := hostingShowNotes(notes)
 	if strings.Contains(string(formatted), "Production notice") || strings.Contains(string(formatted), "duplicate notice") {
 		t.Fatalf("hostingShowNotes() retained the duplicate disclosure: %s", formatted)
