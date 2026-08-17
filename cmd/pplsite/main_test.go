@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -57,7 +58,8 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	root := t.TempDir()
 	config := testConfig()
 	episode := testEpisode("first", "pplstudyguide.com:first")
-	episode.NotesHTML = "<h1>Episode notes</h1>"
+	episode.NotesHTML = "<h1>Episode notes</h1><p><a href=\"https://example.com/diagram\">Diagram</a></p>"
+	episode.PlayerNotesText = playerNotesText(episode.Description, string(episode.NotesHTML))
 	if err := buildInto(root, config, []loadedEpisode{episode}); err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(feed), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(feed), "isPermaLink=\"false\"") {
+	if !strings.Contains(string(feed), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(feed), "isPermaLink=\"false\"") || !strings.Contains(string(feed), "Study materials and visual aids:") || !strings.Contains(string(feed), "https://example.com/diagram") || !strings.Contains(string(feed), "<content:encoded>&lt;h1&gt;Episode notes&lt;/h1&gt;") {
 		t.Fatalf("unexpected feed: %s", feed)
 	}
 	page, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "first", "index.html"))
@@ -102,6 +104,33 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	}
 	if string(robots) != "User-agent: *\nAllow: /\n\nSitemap: https://pplstudyguide.com/sitemap.xml\n" {
 		t.Fatalf("unexpected robots.txt: %s", robots)
+	}
+}
+
+func TestPlayerNotesTextIncludesOnlyUniqueHTTPSStudyLinks(t *testing.T) {
+	notes := `<p><a href="https://example.com/diagram?a=1&amp;b=2" title="FAA source">Diagram <strong>one</strong></a></p><p><a href="mailto:feedback@example.com">Feedback</a></p><p><a href="https://example.com/diagram?a=1&amp;b=2">Duplicate</a></p>`
+	got := playerNotesText("A concise synopsis.", notes)
+	want := "A concise synopsis.\n\nStudy materials and visual aids:\n- Diagram one: https://example.com/diagram?a=1&b=2"
+	if got != want {
+		t.Fatalf("playerNotesText() = %q, want %q", got, want)
+	}
+}
+
+func TestHostingShowNotesKeepsOneDisclosureAndFormatsMetadata(t *testing.T) {
+	notes := []byte("# Title\r\n\r\n**Episode:** 4\r\n**Version:** 1.0.0\r\n**Source verification:** Reviewed today.\r\n\r\n## Production notice\r\n\r\nThis duplicate notice should not appear on the episode page.\r\n\r\n## In this episode\r\n\r\n- A useful lesson.\r\n")
+	formatted := hostingShowNotes(notes)
+	if strings.Contains(string(formatted), "Production notice") || strings.Contains(string(formatted), "duplicate notice") {
+		t.Fatalf("hostingShowNotes() retained the duplicate disclosure: %s", formatted)
+	}
+	if !strings.Contains(string(formatted), "- **Episode:** 4\n- **Version:** 1.0.0\n- **Source verification:** Reviewed today.") {
+		t.Fatalf("hostingShowNotes() did not format metadata as a list: %s", formatted)
+	}
+	var rendered bytes.Buffer
+	if err := showNotesMarkdown.Convert(formatted, &rendered); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rendered.String(), "<ul>") || !strings.Contains(rendered.String(), "<strong>Episode:</strong> 4") {
+		t.Fatalf("formatted metadata did not render as a list: %s", rendered.String())
 	}
 }
 

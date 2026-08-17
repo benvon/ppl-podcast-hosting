@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	stdhtml "html"
 	"html/template"
 	"io"
 	"os"
@@ -25,6 +26,8 @@ import (
 var episodeIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,62}$`)
 var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
+var showNotesLinkPattern = regexp.MustCompile(`(?s)<a\b[^>]*\bhref="(https://[^"]+)"[^>]*>(.+?)</a>`)
+var htmlTagPattern = regexp.MustCompile(`<[^>]+>`)
 var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
 
 const episodesPerPage = 10
@@ -70,7 +73,8 @@ type audio struct {
 
 type loadedEpisode struct {
 	episode
-	NotesHTML template.HTML
+	NotesHTML       template.HTML
+	PlayerNotesText string
 }
 
 func main() {
@@ -283,14 +287,77 @@ func loadEpisodes(dir string) ([]loadedEpisode, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read show notes for %q: %w", episode.ID, err)
 		}
+		hostedNotes := hostingShowNotes(notes)
 		var html bytes.Buffer
-		if err := showNotesMarkdown.Convert(notes, &html); err != nil {
+		if err := showNotesMarkdown.Convert(hostedNotes, &html); err != nil {
 			return nil, fmt.Errorf("render show notes for %q: %w", episode.ID, err)
 		}
-		episodes = append(episodes, loadedEpisode{episode: episode, NotesHTML: template.HTML(html.String())})
+		notesHTML := html.String()
+		episodes = append(episodes, loadedEpisode{episode: episode, NotesHTML: template.HTML(notesHTML), PlayerNotesText: playerNotesText(episode.Description, notesHTML)})
 	}
 	sort.Slice(episodes, func(i, j int) bool { return episodes[i].PublishedAt.After(episodes[j].PublishedAt) })
 	return episodes, nil
+}
+
+func hostingShowNotes(notes []byte) []byte {
+	normalizedNotes := strings.ReplaceAll(string(notes), "\r\n", "\n")
+	lines := strings.Split(normalizedNotes, "\n")
+	withoutDuplicateNotice := make([]string, 0, len(lines))
+	skippingNotice := false
+	for _, line := range lines {
+		if line == "## Production notice" {
+			skippingNotice = true
+			continue
+		}
+		if skippingNotice && strings.HasPrefix(line, "## ") {
+			skippingNotice = false
+		}
+		if !skippingNotice {
+			withoutDuplicateNotice = append(withoutDuplicateNotice, line)
+		}
+	}
+	lines = withoutDuplicateNotice
+	start := 0
+	for start < len(lines) && !strings.HasPrefix(lines[start], "**") {
+		start++
+	}
+	end := start
+	for end < len(lines) && strings.HasPrefix(lines[end], "**") && strings.Contains(lines[end], ":**") {
+		end++
+	}
+	if end-start < 2 {
+		return []byte(strings.Join(lines, "\n"))
+	}
+	metadata := make([]string, 0, end-start)
+	for _, line := range lines[start:end] {
+		metadata = append(metadata, "- "+line)
+	}
+	formatted := append([]string{}, lines[:start]...)
+	formatted = append(formatted, metadata...)
+	formatted = append(formatted, lines[end:]...)
+	return []byte(strings.Join(formatted, "\n"))
+}
+
+func playerNotesText(synopsis string, notesHTML string) string {
+	links := showNotesLinkPattern.FindAllStringSubmatch(notesHTML, -1)
+	if len(links) == 0 {
+		return synopsis
+	}
+	seen := map[string]bool{}
+	lines := []string{synopsis, "", "Study materials and visual aids:"}
+	for _, link := range links {
+		url := stdhtml.UnescapeString(link[1])
+		if seen[url] {
+			continue
+		}
+		seen[url] = true
+		label := strings.Join(strings.Fields(stdhtml.UnescapeString(htmlTagPattern.ReplaceAllString(link[2], ""))), " ")
+		if label == "" {
+			label = url
+		}
+		lines = append(lines, fmt.Sprintf("- %s: %s", label, url))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func loadEpisode(path string) (episode, error) {
@@ -491,13 +558,14 @@ func writeFeed(path string, config showConfig, episodes []loadedEpisode) error {
 	items := make([]rssItem, 0, len(episodes))
 	for _, episode := range episodes {
 		items = append(items, rssItem{
-			Title:       episode.Title,
-			Description: episode.Description,
-			GUID:        guid{Value: episode.GUID, IsPermaLink: "false"},
-			PubDate:     episode.PublishedAt.Format(time.RFC1123Z),
-			Link:        fmt.Sprintf("%s/episodes/%s/", config.BaseURL, episode.ID),
-			Enclosure:   enclosure{URL: config.MediaURL + "/" + episode.Audio.PublicKey, Length: fmt.Sprintf("%d", episode.Audio.Bytes), Type: episode.Audio.ContentType},
-			ItunesTitle: episode.Title, ItunesSummary: episode.Description, ItunesDuration: episode.Duration,
+			Title:          episode.Title,
+			Description:    episode.PlayerNotesText,
+			ContentEncoded: string(episode.NotesHTML),
+			GUID:           guid{Value: episode.GUID, IsPermaLink: "false"},
+			PubDate:        episode.PublishedAt.Format(time.RFC1123Z),
+			Link:           fmt.Sprintf("%s/episodes/%s/", config.BaseURL, episode.ID),
+			Enclosure:      enclosure{URL: config.MediaURL + "/" + episode.Audio.PublicKey, Length: fmt.Sprintf("%d", episode.Audio.Bytes), Type: episode.Audio.ContentType},
+			ItunesTitle:    episode.Title, ItunesSummary: episode.PlayerNotesText, ItunesDuration: episode.Duration,
 			ItunesSeason: episode.Season, ItunesEpisode: episode.Number, ItunesExplicit: fmt.Sprintf("%t", episode.Explicit),
 		})
 	}
@@ -735,6 +803,7 @@ type itunesCategory struct {
 type rssItem struct {
 	Title          string    `xml:"title"`
 	Description    string    `xml:"description"`
+	ContentEncoded string    `xml:"content:encoded"`
 	GUID           guid      `xml:"guid"`
 	PubDate        string    `xml:"pubDate"`
 	Link           string    `xml:"link"`
