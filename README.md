@@ -64,6 +64,11 @@ visual aids**. It also includes the complete rendered notes in
 `content:encoded` for podcast players that support rich notes. Give each link a
 short, descriptive label: it becomes the player-facing study-material label.
 
+The hosted episode page displays the single AI-production disclosure from
+`config/show.yaml` immediately below the audio download link. A legacy
+`## Production notice` section in imported show notes is deliberately omitted
+from the public page and RSS rich notes so listeners do not see it twice.
+
 ## Local prerequisites
 
 - Go (managed through `mise`)

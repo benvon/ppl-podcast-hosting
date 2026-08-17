@@ -287,8 +287,9 @@ func loadEpisodes(dir string) ([]loadedEpisode, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read show notes for %q: %w", episode.ID, err)
 		}
+		hostedNotes := hostingShowNotes(notes)
 		var html bytes.Buffer
-		if err := showNotesMarkdown.Convert(notes, &html); err != nil {
+		if err := showNotesMarkdown.Convert(hostedNotes, &html); err != nil {
 			return nil, fmt.Errorf("render show notes for %q: %w", episode.ID, err)
 		}
 		notesHTML := html.String()
@@ -296,6 +297,44 @@ func loadEpisodes(dir string) ([]loadedEpisode, error) {
 	}
 	sort.Slice(episodes, func(i, j int) bool { return episodes[i].PublishedAt.After(episodes[j].PublishedAt) })
 	return episodes, nil
+}
+
+func hostingShowNotes(notes []byte) []byte {
+	lines := strings.Split(string(notes), "\n")
+	withoutDuplicateNotice := make([]string, 0, len(lines))
+	skippingNotice := false
+	for _, line := range lines {
+		if line == "## Production notice" {
+			skippingNotice = true
+			continue
+		}
+		if skippingNotice && strings.HasPrefix(line, "## ") {
+			skippingNotice = false
+		}
+		if !skippingNotice {
+			withoutDuplicateNotice = append(withoutDuplicateNotice, line)
+		}
+	}
+	lines = withoutDuplicateNotice
+	start := 0
+	for start < len(lines) && !strings.HasPrefix(lines[start], "**") {
+		start++
+	}
+	end := start
+	for end < len(lines) && strings.HasPrefix(lines[end], "**") && strings.Contains(lines[end], ":**") {
+		end++
+	}
+	if end-start < 2 {
+		return []byte(strings.Join(lines, "\n"))
+	}
+	metadata := make([]string, 0, end-start)
+	for _, line := range lines[start:end] {
+		metadata = append(metadata, "- "+line)
+	}
+	formatted := append([]string{}, lines[:start]...)
+	formatted = append(formatted, metadata...)
+	formatted = append(formatted, lines[end:]...)
+	return []byte(strings.Join(formatted, "\n"))
 }
 
 func playerNotesText(synopsis string, notesHTML string) string {

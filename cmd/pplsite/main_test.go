@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -112,6 +113,37 @@ func TestPlayerNotesTextIncludesOnlyUniqueHTTPSStudyLinks(t *testing.T) {
 	want := "A concise synopsis.\n\nStudy materials and visual aids:\n- Diagram one: https://example.com/diagram?a=1&b=2"
 	if got != want {
 		t.Fatalf("playerNotesText() = %q, want %q", got, want)
+	}
+}
+
+func TestHostingShowNotesKeepsOneDisclosureAndFormatsMetadata(t *testing.T) {
+	notes := []byte(`# Title
+
+**Episode:** 4
+**Version:** 1.0.0
+**Source verification:** Reviewed today.
+
+## Production notice
+
+This duplicate notice should not appear on the episode page.
+
+## In this episode
+
+- A useful lesson.
+`)
+	formatted := hostingShowNotes(notes)
+	if strings.Contains(string(formatted), "Production notice") || strings.Contains(string(formatted), "duplicate notice") {
+		t.Fatalf("hostingShowNotes() retained the duplicate disclosure: %s", formatted)
+	}
+	if !strings.Contains(string(formatted), "- **Episode:** 4\n- **Version:** 1.0.0\n- **Source verification:** Reviewed today.") {
+		t.Fatalf("hostingShowNotes() did not format metadata as a list: %s", formatted)
+	}
+	var rendered bytes.Buffer
+	if err := showNotesMarkdown.Convert(formatted, &rendered); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rendered.String(), "<ul>") || !strings.Contains(rendered.String(), "<strong>Episode:</strong> 4") {
+		t.Fatalf("formatted metadata did not render as a list: %s", rendered.String())
 	}
 }
 
