@@ -1,0 +1,15 @@
+id: core-06
+guid: pplstudyguide.com:core-06
+title: Fuel, Mixture, Carburetion, Oil, Cooling, and Electrical Systems
+description: A source-conscious study of fuel, mixture, carburetion, oil, cooling, and electrical systems for private-pilot airplane learners, including a brief distinction between carbureted and fuel-injected engines.
+published_at: 2026-08-21T14:32:30Z
+duration: "00:31:00"
+season: 1
+number: 6
+explicit: false
+audio:
+    staging_key: staging/core-06/1234ab9c541362cfefb59e7ac6b43836d67c211a3f39f5cba724aa6ec75dd41d.mp3
+    public_key: audio/core-06-1234ab9c541362cf.mp3
+    sha256: 1234ab9c541362cfefb59e7ac6b43836d67c211a3f39f5cba724aa6ec75dd41d
+    bytes: 37212639
+    content_type: audio/mpeg
