@@ -546,6 +546,11 @@ func validateEpisode(episode episode) error {
 	if !durationPattern.MatchString(episode.Duration) || episode.Season < 1 || episode.Number < 1 {
 		return fmt.Errorf("episode %q has an invalid duration, season, or number", episode.ID)
 	}
+	parsedDuration, err := time.Parse("15:04:05", episode.Duration)
+	if err != nil {
+		return fmt.Errorf("episode %q has an invalid duration: %w", episode.ID, err)
+	}
+	durationMS := int64(parsedDuration.Hour()*3600+parsedDuration.Minute()*60+parsedDuration.Second()) * 1000
 	if !sha256Pattern.MatchString(episode.Audio.SHA256) || episode.Audio.Bytes < 1 {
 		return fmt.Errorf("episode %q has an invalid audio checksum or byte count", episode.ID)
 	}
@@ -563,6 +568,9 @@ func validateEpisode(episode episode) error {
 		}
 		if chapter.StartMS < 0 {
 			return fmt.Errorf("episode %q chapter %d has a negative start time", episode.ID, index+1)
+		}
+		if chapter.StartMS >= durationMS {
+			return fmt.Errorf("episode %q chapter %d must start before the episode duration", episode.ID, index+1)
 		}
 		if index == 0 && chapter.StartMS != 0 {
 			return fmt.Errorf("episode %q first chapter must start at zero", episode.ID)

@@ -167,6 +167,15 @@ func TestEpisodePageRendersCollapsibleChaptersOnlyWhenPresent(t *testing.T) {
 	}
 }
 
+func TestValidateEpisodeRejectsChapterAtOrBeyondDuration(t *testing.T) {
+	episode := testEpisode("chapter-boundary", "pplstudyguide.com:chapter-boundary")
+	episode.Duration = "00:01:00"
+	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Too late", StartMS: 60_000}}
+	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "must start before the episode duration") {
+		t.Fatalf("validateEpisode() error = %v, want chapter-duration bound failure", err)
+	}
+}
+
 func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	root := t.TempDir()
 	episodes := make([]loadedEpisode, 0, episodesPerPage+1)
