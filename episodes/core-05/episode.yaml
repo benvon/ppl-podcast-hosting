@@ -7,6 +7,43 @@ duration: "00:43:02"
 season: 1
 number: 5
 explicit: false
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 47000
+    - title: Podcast introduction
+      start_ms: 84000
+    - title: What the ACS is asking you to connect
+      start_ms: 113000
+    - title: Pressure becomes rotation
+      start_ms: 227360
+    - title: Four strokes, one power event
+      start_ms: 403110
+    - title: The propeller is a rotating wing
+      start_ms: 691330
+    - title: Why a propeller blade is twisted
+      start_ms: 853730
+    - title: Fixed pitch means a designed compromise
+      start_ms: 1018600
+    - title: Constant speed separates power from rpm
+      start_ms: 1212750
+    - title: Combustion is a timed pressure event
+      start_ms: 1447890
+    - title: Detonation is explosive combustion
+      start_ms: 1586840
+    - title: Preignition starts before the spark
+      start_ms: 1756290
+    - title: Two sparks, two independent sources
+      start_ms: 1916190
+    - title: The propeller is always live
+      start_ms: 2080140
+    - title: Read relationships, not isolated numbers
+      start_ms: 2182790
+    - title: Retrieval review
+      start_ms: 2412340
+    - title: Outro
+      start_ms: 2540150
 audio:
     staging_key: staging/core-05/8a78c22efe359d87e0e5a310cb3aa2fb2326c19e75df48e5e2331439738a815f.mp3
     public_key: audio/core-05-8a78c22efe359d87.mp3

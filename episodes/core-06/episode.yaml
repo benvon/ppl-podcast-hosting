@@ -7,6 +7,37 @@ duration: "00:31:00"
 season: 1
 number: 6
 explicit: false
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 20600
+    - title: Podcast introduction
+      start_ms: 58750
+    - title: What the ACS is asking you to connect
+      start_ms: 89300
+    - title: Air and fuel need a path
+      start_ms: 212580
+    - title: Carburetors and fuel injection
+      start_ms: 359530
+    - title: Mixture is ratio, not power
+      start_ms: 464690
+    - title: Carburetor ice is a temperature problem
+      start_ms: 611940
+    - title: Fuel system is more than a tank
+      start_ms: 798090
+    - title: Oil is a working fluid
+      start_ms: 1064750
+    - title: Cooling is an airflow job
+      start_ms: 1198460
+    - title: Electrical power has a path
+      start_ms: 1354960
+    - title: Read relationships, not isolated gauges
+      start_ms: 1556550
+    - title: Retrieval review
+      start_ms: 1718430
+    - title: Outro
+      start_ms: 1818590
 audio:
     staging_key: staging/core-06/1234ab9c541362cfefb59e7ac6b43836d67c211a3f39f5cba724aa6ec75dd41d.mp3
     public_key: audio/core-06-1234ab9c541362cf.mp3
