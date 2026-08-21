@@ -74,7 +74,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(page), "Episode notes") || !strings.Contains(string(page), "<audio controls") || !strings.Contains(string(page), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(page), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/first/\"") || !strings.Contains(string(page), "property=\"og:type\" content=\"article\"") {
+	if !strings.Contains(string(page), "Episode notes") || !strings.Contains(string(page), "<audio id=\"episode-audio\" controls") || !strings.Contains(string(page), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(page), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/first/\"") || !strings.Contains(string(page), "property=\"og:type\" content=\"article\"") {
 		t.Fatalf("show notes were not rendered")
 	}
 	homepage, err := os.ReadFile(filepath.Join(root, "dist", "index.html"))
@@ -131,6 +131,48 @@ func TestHostingShowNotesKeepsOneDisclosureAndFormatsMetadata(t *testing.T) {
 	}
 	if !strings.Contains(rendered.String(), "<ul>") || !strings.Contains(rendered.String(), "<strong>Episode:</strong> 4") {
 		t.Fatalf("formatted metadata did not render as a list: %s", rendered.String())
+	}
+}
+
+func TestEpisodePageRendersCollapsibleChaptersOnlyWhenPresent(t *testing.T) {
+	root := t.TempDir()
+	config := testConfig()
+	withChapters := testEpisode("with-chapters", "pplstudyguide.com:with-chapters")
+	withChapters.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Lesson", StartMS: 74_000}}
+	withChaptersPath := filepath.Join(root, "with-chapters.html")
+	if err := writeEpisodePage(withChaptersPath, config, withChapters); err != nil {
+		t.Fatal(err)
+	}
+	withChaptersPage, err := os.ReadFile(withChaptersPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{"<details class=\"chapters\">", "<summary>Chapters</summary>", "data-chapter-start=\"74.000\"", "<time>1:14</time>", "<span>Lesson</span>"} {
+		if !strings.Contains(string(withChaptersPage), expected) {
+			t.Fatalf("chapter page is missing %q: %s", expected, withChaptersPage)
+		}
+	}
+
+	withoutChapters := testEpisode("without-chapters", "pplstudyguide.com:without-chapters")
+	withoutChaptersPath := filepath.Join(root, "without-chapters.html")
+	if err := writeEpisodePage(withoutChaptersPath, config, withoutChapters); err != nil {
+		t.Fatal(err)
+	}
+	withoutChaptersPage, err := os.ReadFile(withoutChaptersPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(withoutChaptersPage), "<details class=\"chapters\">") {
+		t.Fatalf("episode without chapter markers rendered a Chapters control: %s", withoutChaptersPage)
+	}
+}
+
+func TestValidateEpisodeRejectsChapterAtOrBeyondDuration(t *testing.T) {
+	episode := testEpisode("chapter-boundary", "pplstudyguide.com:chapter-boundary")
+	episode.Duration = "00:01:00"
+	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Too late", StartMS: 60_000}}
+	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "must start before the episode duration") {
+		t.Fatalf("validateEpisode() error = %v, want chapter-duration bound failure", err)
 	}
 }
 
