@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   publish:
+    needs: discover-new-episodes
     runs-on: ubuntu-24.04
     environment: production
     env:
@@ -101,7 +102,6 @@ jobs:
         run: npx --yes wrangler@4 pages deploy dist --project-name pplstudyguide --branch main
 
   discover-new-episodes:
-    needs: publish
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -144,7 +144,7 @@ jobs:
           jq -sc . "$queued" | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
 
   attest-and-release:
-    needs: discover-new-episodes
+    needs: [discover-new-episodes, publish]
     if: needs.discover-new-episodes.outputs.episodes != '[]'
     runs-on: ubuntu-24.04
     strategy:
