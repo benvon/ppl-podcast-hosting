@@ -54,6 +54,34 @@ audio: {}
 	}
 }
 
+func TestPrepareRejectsChapterMarkersForDifferentAudio(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("new audio"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: chapter-audio
+guid: pplstudyguide.com:chapter-audio
+title: Chapter audio binding
+description: Reject stale chapter metadata.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+explicit: false
+chapters:
+  - title: Opening
+    start_ms: 0
+chapters_audio_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+audio: {}
+`))
+	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err == nil || !strings.Contains(err.Error(), "chapter markers are not bound to the supplied MP3") {
+		t.Fatalf("prepareCommand() error = %v, want stale chapter metadata rejection", err)
+	}
+}
+
 func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	root := t.TempDir()
 	config := testConfig()

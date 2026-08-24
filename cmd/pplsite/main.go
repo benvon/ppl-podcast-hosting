@@ -231,8 +231,8 @@ func prepareCommand(args []string) error {
 		Bytes:       size,
 		ContentType: "audio/mpeg",
 	}
-	if len(input.Chapters) > 0 {
-		input.ChaptersAudioSHA256 = sum
+	if len(input.Chapters) > 0 && input.ChaptersAudioSHA256 != sum {
+		return fmt.Errorf("episode %q chapter markers are not bound to the supplied MP3", input.ID)
 	}
 	outputDir := filepath.Join(*outDir, input.ID)
 	if _, err := os.Stat(outputDir); err == nil {
