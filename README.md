@@ -40,6 +40,13 @@ source-handoff-seal hashes. This state-based discovery recovers an episode if a
 previous pending run was superseded. It is forward-only: older episodes without
 the sealed-package marker are not retroactively released or attested.
 
+Each sealed package also carries a public release key and semantic content
+version. GitHub tags use the immutable, namespaced form
+`<release-key>/v<content-version>`: for example, `episode-07/v0.1.4`,
+`supplement-01/v0.1.0`, or `rough-spot-001/v0.1.0`. Internal production IDs
+such as `core-07` never determine public tag names. The release-record asset
+uses the corresponding stable name, such as `episode-07-v0.1.4.json`.
+
 A release is considered complete only when it is published and contains its
 episode publication-record JSON asset, its tag resolves to the commit named by
 that record, the record identifies the expected episode, and GitHub verifies an
@@ -50,6 +57,11 @@ that incomplete state and retries it. Creation ends with the same full
 verification, including an exact byte comparison with the locally attested
 record. An invalid published release fails closed instead of silently claiming
 the episode is attested.
+
+The workflow derives the tag and asset name from the sealed public key and
+version, then verifies that those same values appear in the generated record
+before it is attested or released. A mismatched key, version, tag, asset, or
+record is rejected rather than being published under an ambiguous identity.
 
 Manual recovery runs are allowed only from `main`. Publication jobs share one
 non-cancelling concurrency group, so retry cleanup, deployment, and release

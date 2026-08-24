@@ -5,14 +5,16 @@ set -euo pipefail
 # the commit named by the publication record, and that record identifies the
 # expected episode. A draft and an orphaned tag are intentionally retryable.
 if [[ $# -lt 3 || $# -gt 4 ]]; then
-  echo "usage: release-state.sh RELEASE_TAG RECORD_ASSET EPISODE_ID [EXPECTED_RECORD]" >&2
+  echo "usage: release-state.sh RELEASE_KEY CONTENT_VERSION EPISODE_ID [EXPECTED_RECORD]" >&2
   exit 64
 fi
 
-tag=$1
-asset=$2
+release_key=$1
+content_version=$2
 episode_id=$3
 expected_record=${4:-}
+tag="${release_key}/v${content_version}"
+asset="${release_key}-v${content_version}.json"
 gh_bin=${GH_BIN:-gh}
 repo=${GH_REPO:-${GITHUB_REPOSITORY:-}}
 if [[ -z "$repo" ]]; then
@@ -20,8 +22,9 @@ if [[ -z "$repo" ]]; then
   exit 64
 fi
 
-if [[ ! "$tag" =~ ^episode-[a-z0-9][a-z0-9-]{1,62}$ || ! "$asset" =~ ^[a-z0-9][a-z0-9-]{1,62}\.json$ || ! "$episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
-  echo "release tag, record asset, or episode id has an invalid format" >&2
+semver_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+if [[ ! "$release_key" =~ ^((episode|supplement)-[0-9]{2}|rough-spot-[0-9]{3})$ || ! "$content_version" =~ $semver_pattern || ! "$episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
+  echo "release key, content version, or episode id has an invalid format" >&2
   exit 64
 fi
 if [[ -n "$expected_record" && ! -f "$expected_record" ]]; then
@@ -120,8 +123,8 @@ if ! "$gh_bin" api -H 'Accept: application/octet-stream' "repos/${repo}/releases
   echo "Could not download publication record ${asset} from ${tag}" >&2
   exit 1
 fi
-if ! jq -e --arg episode "$episode_id" --arg commit "$resolved_commit" \
-  '.schema_version == 1 and .episode.id == $episode and .source_commit == $commit' \
+if ! jq -e --arg episode "$episode_id" --arg key "$release_key" --arg version "$content_version" --arg tag "$tag" --arg commit "$resolved_commit" \
+  '.schema_version == 1 and .episode.id == $episode and .episode.release_key == $key and .episode.content_version == $version and .release_tag == $tag and .source_commit == $commit' \
   "$record_file" >/dev/null; then
   echo "published-invalid"
   exit 0

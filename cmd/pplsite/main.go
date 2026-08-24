@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ import (
 var episodeIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,62}$`)
 var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
+var releaseKeyPattern = regexp.MustCompile(`^(?:(episode|supplement)-([0-9]{2})|(rough-spot)-([0-9]{3}))$`)
+var semverPattern = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$`)
 var showNotesLinkPattern = regexp.MustCompile(`(?s)<a\b[^>]*\bhref="(https://[^"]+)"[^>]*>(.+?)</a>`)
 var htmlTagPattern = regexp.MustCompile(`<[^>]+>`)
 var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
@@ -54,6 +57,8 @@ type showConfig struct {
 
 type episode struct {
 	ID                      string    `yaml:"id"`
+	ReleaseKey              string    `yaml:"release_key"`
+	ContentVersion          string    `yaml:"content_version"`
 	GUID                    string    `yaml:"guid"`
 	Title                   string    `yaml:"title"`
 	Description             string    `yaml:"description"`
@@ -113,6 +118,7 @@ type handoffSealEpisode struct {
 type releaseRecord struct {
 	SchemaVersion      int                  `json:"schema_version"`
 	SourceCommit       string               `json:"source_commit"`
+	ReleaseTag         string               `json:"release_tag"`
 	EpisodeManifestSHA string               `json:"episode_manifest_sha256"`
 	ShowNotesSHA       string               `json:"show_notes_sha256"`
 	Episode            releaseRecordEpisode `json:"episode"`
@@ -120,6 +126,8 @@ type releaseRecord struct {
 
 type releaseRecordEpisode struct {
 	ID                      string    `json:"id"`
+	ReleaseKey              string    `json:"release_key"`
+	ContentVersion          string    `json:"content_version"`
 	GUID                    string    `json:"guid"`
 	Title                   string    `json:"title"`
 	PublishedAt             time.Time `json:"published_at"`
@@ -276,6 +284,13 @@ func prepareCommand(args []string) error {
 	if err != nil {
 		return err
 	}
+	seal, err := readHandoffSeal(*sourceDir)
+	if err != nil {
+		return err
+	}
+	if _, err := releaseTagFor(input, seal.Payload.Episode.Version); err != nil {
+		return fmt.Errorf("validate sealed public release identity: %w", err)
+	}
 	if input.ID == "" || !episodeIDPattern.MatchString(input.ID) {
 		return fmt.Errorf("episode id must match %s", episodeIDPattern.String())
 	}
@@ -335,11 +350,11 @@ func prepareCommand(args []string) error {
 	if err := writeFile(filepath.Join(outputDir, "source-episode.yaml"), sourceEpisode); err != nil {
 		return err
 	}
-	seal, err := os.ReadFile(filepath.Join(*sourceDir, "source-release-seal.yaml"))
+	sealBytes, err := os.ReadFile(filepath.Join(*sourceDir, "source-release-seal.yaml"))
 	if err != nil {
 		return fmt.Errorf("read source release seal: %w", err)
 	}
-	if err := writeFile(filepath.Join(outputDir, "source-release-seal.yaml"), seal); err != nil {
+	if err := writeFile(filepath.Join(outputDir, "source-release-seal.yaml"), sealBytes); err != nil {
 		return err
 	}
 	fmt.Printf("episode_id=%s\nstaging_key=%s\npublic_key=%s\nsha256=%s\nbytes=%d\n", input.ID, input.Audio.StagingKey, input.Audio.PublicKey, input.Audio.SHA256, input.Audio.Bytes)
@@ -387,6 +402,9 @@ func verifyHandoffCommand(args []string) error {
 	if input.ID != seal.Payload.Episode.ID || input.Title != seal.Payload.Episode.Title || input.PublishedAt.Format(time.RFC3339) != seal.Payload.Episode.PublishedAt {
 		return errors.New("sealed episode identity does not match the handoff metadata")
 	}
+	if _, err := releaseTagFor(input, seal.Payload.Episode.Version); err != nil {
+		return fmt.Errorf("sealed public release identity does not match the handoff metadata: %w", err)
+	}
 	return nil
 }
 
@@ -407,6 +425,31 @@ func readHandoffSeal(directory string) (handoffSeal, error) {
 		return handoffSeal{}, errors.New("source release seal digest does not match its payload")
 	}
 	return seal, nil
+}
+
+// releaseTagFor validates the source-sealed public release identity. The
+// internal episode ID remains an implementation detail; only this namespaced
+// key and content version are used to create GitHub tags and release records.
+func releaseTagFor(episode episode, sealedVersion string) (string, error) {
+	matches := releaseKeyPattern.FindStringSubmatch(episode.ReleaseKey)
+	if matches == nil {
+		return "", fmt.Errorf("release_key %q must match %s", episode.ReleaseKey, releaseKeyPattern.String())
+	}
+	keyNumberText := matches[2]
+	if keyNumberText == "" {
+		keyNumberText = matches[4]
+	}
+	keyNumber, err := strconv.Atoi(keyNumberText)
+	if err != nil || keyNumber < 1 || keyNumber != episode.Number {
+		return "", fmt.Errorf("release_key %q must use episode number %d", episode.ReleaseKey, episode.Number)
+	}
+	if !semverPattern.MatchString(episode.ContentVersion) {
+		return "", fmt.Errorf("content_version %q must be semantic versioning", episode.ContentVersion)
+	}
+	if sealedVersion != "" && episode.ContentVersion != sealedVersion {
+		return "", fmt.Errorf("content_version %q does not match sealed source version %q", episode.ContentVersion, sealedVersion)
+	}
+	return fmt.Sprintf("%s/v%s", episode.ReleaseKey, episode.ContentVersion), nil
 }
 
 func verifyHostedReleaseProvenance(episodePath string, hosted episode) error {
@@ -436,6 +479,12 @@ func verifyHostedReleaseProvenance(episodePath string, hosted episode) error {
 	}
 	if sourceEpisode.ID != seal.Payload.Episode.ID || sourceEpisode.Title != seal.Payload.Episode.Title || sourceEpisode.PublishedAt.Format(time.RFC3339) != seal.Payload.Episode.PublishedAt {
 		return errors.New("retained source episode metadata does not match the sealed episode identity")
+	}
+	if _, err := releaseTagFor(sourceEpisode, seal.Payload.Episode.Version); err != nil {
+		return fmt.Errorf("retained source episode metadata has an invalid public release identity: %w", err)
+	}
+	if _, err := releaseTagFor(hosted, seal.Payload.Episode.Version); err != nil {
+		return fmt.Errorf("hosted episode metadata has an invalid public release identity: %w", err)
 	}
 	comparableSource := sourceEpisode
 	comparableSource.Audio = audio{}
@@ -468,25 +517,52 @@ func verifyHostedReleaseProvenance(episodePath string, hosted episode) error {
 func releaseCandidatesCommand(args []string) error {
 	flags := flag.NewFlagSet("release-candidates", flag.ContinueOnError)
 	episodesDir := flags.String("episodes", "episodes", "episodes directory")
+	jsonOutput := flags.Bool("json", false, "write release candidates as JSON")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	candidates, err := releaseCandidateIDs(*episodesDir)
+	candidates, err := releaseCandidates(*episodesDir)
 	if err != nil {
 		return err
 	}
-	for _, id := range candidates {
-		fmt.Println(id)
+	if *jsonOutput {
+		data, err := json.Marshal(candidates)
+		if err != nil {
+			return fmt.Errorf("serialize release candidates: %w", err)
+		}
+		fmt.Println(string(data))
+		return nil
+	}
+	for _, candidate := range candidates {
+		fmt.Println(candidate.ID)
 	}
 	return nil
 }
 
+type releaseCandidate struct {
+	ID             string `json:"id"`
+	ReleaseKey     string `json:"release_key"`
+	ContentVersion string `json:"content_version"`
+}
+
 func releaseCandidateIDs(episodesDir string) ([]string, error) {
+	candidates, err := releaseCandidates(episodesDir)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(candidates))
+	for _, id := range candidates {
+		ids = append(ids, id.ID)
+	}
+	return ids, nil
+}
+
+func releaseCandidates(episodesDir string) ([]releaseCandidate, error) {
 	paths, err := filepath.Glob(filepath.Join(episodesDir, "*", "episode.yaml"))
 	if err != nil {
 		return nil, fmt.Errorf("find episode manifests: %w", err)
 	}
-	candidates := make([]string, 0, len(paths))
+	candidates := make([]releaseCandidate, 0, len(paths))
 	for _, episodePath := range paths {
 		loaded, err := loadEpisode(episodePath)
 		if err != nil {
@@ -501,9 +577,24 @@ func releaseCandidateIDs(episodesDir string) ([]string, error) {
 		if err := verifyHostedReleaseProvenance(episodePath, loaded); err != nil {
 			return nil, fmt.Errorf("verify release candidate %q: %w", loaded.ID, err)
 		}
-		candidates = append(candidates, loaded.ID)
+		candidates = append(candidates, releaseCandidate{ID: loaded.ID, ReleaseKey: loaded.ReleaseKey, ContentVersion: loaded.ContentVersion})
+	}
+	if err := validateReleaseCandidateIdentities(candidates); err != nil {
+		return nil, err
 	}
 	return candidates, nil
+}
+
+func validateReleaseCandidateIdentities(candidates []releaseCandidate) error {
+	seen := make(map[string]string, len(candidates))
+	for _, candidate := range candidates {
+		identity := fmt.Sprintf("%s/v%s", candidate.ReleaseKey, candidate.ContentVersion)
+		if priorID, exists := seen[identity]; exists && priorID != candidate.ID {
+			return fmt.Errorf("sealed episodes %q and %q share public release identity %q", priorID, candidate.ID, identity)
+		}
+		seen[identity] = candidate.ID
+	}
+	return nil
 }
 
 func validateSealedEpisodeProvenance(episodesDir string, episodes []loadedEpisode) error {
@@ -539,6 +630,10 @@ func releaseRecordCommand(args []string) error {
 	if err := verifyHostedReleaseProvenance(*episodePath, loaded); err != nil {
 		return err
 	}
+	releaseTag, err := releaseTagFor(loaded, "")
+	if err != nil {
+		return err
+	}
 	episodeHash, _, err := fileSHA256(*episodePath)
 	if err != nil {
 		return err
@@ -547,7 +642,7 @@ func releaseRecordCommand(args []string) error {
 	if err != nil {
 		return err
 	}
-	record := releaseRecord{SchemaVersion: 1, SourceCommit: *commit, EpisodeManifestSHA: episodeHash, ShowNotesSHA: notesHash, Episode: releaseRecordEpisode{ID: loaded.ID, GUID: loaded.GUID, Title: loaded.Title, PublishedAt: loaded.PublishedAt, Duration: loaded.Duration, Season: loaded.Season, Number: loaded.Number, Explicit: loaded.Explicit, Audio: loaded.Audio, Chapters: loaded.Chapters, ChaptersAudioSHA256: loaded.ChaptersAudioSHA256, SourceReleaseSealSHA256: loaded.SourceReleaseSealSHA256}}
+	record := releaseRecord{SchemaVersion: 1, SourceCommit: *commit, ReleaseTag: releaseTag, EpisodeManifestSHA: episodeHash, ShowNotesSHA: notesHash, Episode: releaseRecordEpisode{ID: loaded.ID, ReleaseKey: loaded.ReleaseKey, ContentVersion: loaded.ContentVersion, GUID: loaded.GUID, Title: loaded.Title, PublishedAt: loaded.PublishedAt, Duration: loaded.Duration, Season: loaded.Season, Number: loaded.Number, Explicit: loaded.Explicit, Audio: loaded.Audio, Chapters: loaded.Chapters, ChaptersAudioSHA256: loaded.ChaptersAudioSHA256, SourceReleaseSealSHA256: loaded.SourceReleaseSealSHA256}}
 	data, err := json.MarshalIndent(record, "", "  ")
 	if err != nil {
 		return fmt.Errorf("serialize release record: %w", err)

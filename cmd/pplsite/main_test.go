@@ -56,6 +56,17 @@ func TestValidateAllRejectsDuplicateGUID(t *testing.T) {
 	}
 }
 
+func TestReleaseIdentityRejectsDuplicateOrMalformedPublicValues(t *testing.T) {
+	if err := validateReleaseCandidateIdentities([]releaseCandidate{{ID: "core-07", ReleaseKey: "episode-07", ContentVersion: "0.1.4"}, {ID: "supplement-07", ReleaseKey: "episode-07", ContentVersion: "0.1.4"}}); err == nil || !strings.Contains(err.Error(), "share public release identity") {
+		t.Fatalf("validateReleaseCandidateIdentities() error = %v, want duplicate release identity rejection", err)
+	}
+	for _, candidate := range []releaseCandidate{{ID: "core-007", ReleaseKey: "episode-007", ContentVersion: "0.1.4"}, {ID: "rough-07", ReleaseKey: "rough-spot-07", ContentVersion: "0.1.4"}, {ID: "core-07", ReleaseKey: "episode-07", ContentVersion: "1.0.0-01"}} {
+		if _, err := releaseTagFor(episode{ReleaseKey: candidate.ReleaseKey, ContentVersion: candidate.ContentVersion, Number: 7}, ""); err == nil {
+			t.Fatalf("releaseTagFor(%#v) succeeded, want malformed release identity rejection", candidate)
+		}
+	}
+}
+
 func TestPrepareBuildsImmutableAudioKeys(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
@@ -72,6 +83,8 @@ published_at: 2026-08-15T14:00:00Z
 duration: "00:01:00"
 season: 1
 number: 1
+release_key: episode-01
+content_version: 0.1.0
 explicit: false
 audio: {}
 `))
@@ -117,6 +130,8 @@ published_at: 2026-08-15T14:00:00Z
 duration: "00:01:00"
 season: 1
 number: 1
+release_key: episode-01
+content_version: 0.1.0
 explicit: false
 chapters:
   - title: Opening
@@ -146,6 +161,8 @@ published_at: 2026-08-15T14:00:00Z
 duration: "00:01:00"
 season: 1
 number: 1
+release_key: episode-01
+content_version: 0.1.0
 explicit: false
 audio: {}
 `))
@@ -175,6 +192,8 @@ published_at: 2026-08-15T14:00:00Z
 duration: "00:01:00"
 season: 1
 number: 1
+release_key: episode-01
+content_version: 0.1.0
 explicit: false
 audio: {}
 `))
@@ -195,7 +214,7 @@ audio: {}
 	if err := json.Unmarshal(data, &record); err != nil {
 		t.Fatal(err)
 	}
-	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || !sha256Pattern.MatchString(record.Episode.SourceReleaseSealSHA256) || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
+	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.ReleaseTag != "episode-01/v0.1.0" || record.Episode.ID != "recorded" || record.Episode.ReleaseKey != "episode-01" || record.Episode.ContentVersion != "0.1.0" || !sha256Pattern.MatchString(record.Episode.SourceReleaseSealSHA256) || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
 		t.Fatalf("unexpected release record: %#v", record)
 	}
 	historicalDir := filepath.Join(root, "episodes", "historical")
@@ -213,6 +232,11 @@ audio: {}
 	if err != nil || !reflect.DeepEqual(candidates, []string{"recorded"}) {
 		t.Fatalf("releaseCandidateIDs() = %#v, %v; want only the sealed recorded episode", candidates, err)
 	}
+	identities, err := releaseCandidates(filepath.Join(root, "episodes"))
+	wantIdentities := []releaseCandidate{{ID: "recorded", ReleaseKey: "episode-01", ContentVersion: "0.1.0"}}
+	if err != nil || !reflect.DeepEqual(identities, wantIdentities) {
+		t.Fatalf("releaseCandidates() = %#v, %v; want %#v", identities, err, wantIdentities)
+	}
 	originalEpisode, err := os.ReadFile(episodePath)
 	if err != nil {
 		t.Fatal(err)
@@ -229,6 +253,20 @@ audio: {}
 	writeTestFile(t, episodePath, mutatedEpisode)
 	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed-audio.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "hosted audio identity") {
 		t.Fatalf("releaseRecordCommand() error = %v, want sealed audio identity rejection", err)
+	}
+	writeTestFile(t, episodePath, originalEpisode)
+	prepared, err = loadEpisode(episodePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared.ContentVersion = "0.1.1"
+	mutatedEpisode, err = yaml.Marshal(prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, episodePath, mutatedEpisode)
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed-release-version.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "content_version") {
+		t.Fatalf("releaseRecordCommand() error = %v, want sealed release-version rejection", err)
 	}
 	writeTestFile(t, episodePath, originalEpisode)
 	writeTestFile(t, filepath.Join(root, "episodes", "recorded", "show-notes.md"), []byte("# Changed after staging\n"))

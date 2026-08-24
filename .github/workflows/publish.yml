@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   publish:
+    needs: discover-new-episodes
     runs-on: ubuntu-24.04
     environment: production
     env:
@@ -101,7 +102,6 @@ jobs:
         run: npx --yes wrangler@4 pages deploy dist --project-name pplstudyguide --branch main
 
   discover-new-episodes:
-    needs: publish
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -122,24 +122,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ids=()
+          queued=$(mktemp)
+          trap 'rm -f "$queued"' EXIT
+          candidates=$(go run ./cmd/pplsite release-candidates --episodes episodes --json)
+          jq -e 'type == "array"' >/dev/null <<<"$candidates"
           while IFS= read -r candidate; do
-            [[ -z "$candidate" ]] && continue
-            state=$(bash scripts/release-state.sh "episode-${candidate}" "${candidate}.json" "${candidate}")
+            id=$(jq -er '.id' <<<"$candidate")
+            release_key=$(jq -er '.release_key' <<<"$candidate")
+            content_version=$(jq -er '.content_version' <<<"$candidate")
+            state=$(bash scripts/release-state.sh "$release_key" "$content_version" "$id")
             case "$state" in
               complete) continue ;;
-              missing|draft|orphan-tag) ids+=("$candidate") ;;
+              missing|draft|orphan-tag) printf '%s\n' "$candidate" >>"$queued" ;;
               published-missing-asset|published-invalid|published-record-mismatch)
-                echo "Published GitHub Release episode-${candidate} is not a valid immutable release record (${state}); refusing to overwrite it." >&2
+                echo "Published GitHub Release ${release_key}/v${content_version} is not a valid immutable release record (${state}); refusing to overwrite it." >&2
                 exit 1
                 ;;
-              *) echo "Unknown release state for episode-${candidate}: ${state}" >&2; exit 1 ;;
+              *) echo "Unknown release state for ${release_key}/v${content_version}: ${state}" >&2; exit 1 ;;
             esac
-          done < <(go run ./cmd/pplsite release-candidates --episodes episodes)
-          printf '%s\n' "${ids[@]:-}" | jq -Rsc 'split("\n") | map(select(length > 0))' | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
+          done < <(jq -c '.[]' <<<"$candidates")
+          jq -sc . "$queued" | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
 
   attest-and-release:
-    needs: discover-new-episodes
+    needs: [discover-new-episodes, publish]
     if: needs.discover-new-episodes.outputs.episodes != '[]'
     runs-on: ubuntu-24.04
     strategy:
@@ -160,26 +165,29 @@ jobs:
       - name: Build publication record
         run: >-
           go run ./cmd/pplsite release-record
-          --episode episodes/${{ matrix.episode }}/episode.yaml
-          --out release-records/${{ matrix.episode }}.json
+          --episode episodes/${{ matrix.episode.id }}/episode.yaml
+          --out release-records/${{ matrix.episode.release_key }}-v${{ matrix.episode.content_version }}.json
           --commit ${{ github.sha }}
 
       - name: Attest publication record
         uses: actions/attest@v4
         with:
-          subject-path: release-records/${{ matrix.episode }}.json
+          subject-path: release-records/${{ matrix.episode.release_key }}-v${{ matrix.episode.content_version }}.json
 
       - name: Create GitHub release record
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          EPISODE: ${{ matrix.episode }}
+          EPISODE_ID: ${{ matrix.episode.id }}
+          RELEASE_KEY: ${{ matrix.episode.release_key }}
+          CONTENT_VERSION: ${{ matrix.episode.content_version }}
           PUBLISHED_COMMIT: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/publish-release.sh \
-            "episode-${EPISODE}" \
-            "release-records/${EPISODE}.json" \
-            "$EPISODE" \
+            "$RELEASE_KEY" \
+            "$CONTENT_VERSION" \
+            "release-records/${RELEASE_KEY}-v${CONTENT_VERSION}.json" \
+            "$EPISODE_ID" \
             "$PUBLISHED_COMMIT"
