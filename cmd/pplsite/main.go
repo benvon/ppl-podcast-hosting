@@ -29,8 +29,8 @@ import (
 var episodeIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,62}$`)
 var sha256Pattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var durationPattern = regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$`)
-var releaseKeyPattern = regexp.MustCompile(`^(episode|supplement|rough-spot)-([0-9]{2,3})$`)
-var semverPattern = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$`)
+var releaseKeyPattern = regexp.MustCompile(`^(?:(episode|supplement)-([0-9]{2})|(rough-spot)-([0-9]{3}))$`)
+var semverPattern = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$`)
 var showNotesLinkPattern = regexp.MustCompile(`(?s)<a\b[^>]*\bhref="(https://[^"]+)"[^>]*>(.+?)</a>`)
 var htmlTagPattern = regexp.MustCompile(`<[^>]+>`)
 var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
@@ -435,7 +435,11 @@ func releaseTagFor(episode episode, sealedVersion string) (string, error) {
 	if matches == nil {
 		return "", fmt.Errorf("release_key %q must match %s", episode.ReleaseKey, releaseKeyPattern.String())
 	}
-	keyNumber, err := strconv.Atoi(matches[2])
+	keyNumberText := matches[2]
+	if keyNumberText == "" {
+		keyNumberText = matches[4]
+	}
+	keyNumber, err := strconv.Atoi(keyNumberText)
 	if err != nil || keyNumber < 1 || keyNumber != episode.Number {
 		return "", fmt.Errorf("release_key %q must use episode number %d", episode.ReleaseKey, episode.Number)
 	}
@@ -575,7 +579,22 @@ func releaseCandidates(episodesDir string) ([]releaseCandidate, error) {
 		}
 		candidates = append(candidates, releaseCandidate{ID: loaded.ID, ReleaseKey: loaded.ReleaseKey, ContentVersion: loaded.ContentVersion})
 	}
+	if err := validateReleaseCandidateIdentities(candidates); err != nil {
+		return nil, err
+	}
 	return candidates, nil
+}
+
+func validateReleaseCandidateIdentities(candidates []releaseCandidate) error {
+	seen := make(map[string]string, len(candidates))
+	for _, candidate := range candidates {
+		identity := fmt.Sprintf("%s/v%s", candidate.ReleaseKey, candidate.ContentVersion)
+		if priorID, exists := seen[identity]; exists && priorID != candidate.ID {
+			return fmt.Errorf("sealed episodes %q and %q share public release identity %q", priorID, candidate.ID, identity)
+		}
+		seen[identity] = candidate.ID
+	}
+	return nil
 }
 
 func validateSealedEpisodeProvenance(episodesDir string, episodes []loadedEpisode) error {

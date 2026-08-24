@@ -22,7 +22,8 @@ if [[ -z "$repo" ]]; then
   exit 64
 fi
 
-if [[ ! "$release_key" =~ ^(episode|supplement|rough-spot)-[0-9]{2,3}$ || ! "$content_version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ || ! "$episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
+semver_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+if [[ ! "$release_key" =~ ^((episode|supplement)-[0-9]{2}|rough-spot-[0-9]{3})$ || ! "$content_version" =~ $semver_pattern || ! "$episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
   echo "release key, content version, or episode id has an invalid format" >&2
   exit 64
 fi

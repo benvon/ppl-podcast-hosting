@@ -56,6 +56,17 @@ func TestValidateAllRejectsDuplicateGUID(t *testing.T) {
 	}
 }
 
+func TestReleaseIdentityRejectsDuplicateOrMalformedPublicValues(t *testing.T) {
+	if err := validateReleaseCandidateIdentities([]releaseCandidate{{ID: "core-07", ReleaseKey: "episode-07", ContentVersion: "0.1.4"}, {ID: "supplement-07", ReleaseKey: "episode-07", ContentVersion: "0.1.4"}}); err == nil || !strings.Contains(err.Error(), "share public release identity") {
+		t.Fatalf("validateReleaseCandidateIdentities() error = %v, want duplicate release identity rejection", err)
+	}
+	for _, candidate := range []releaseCandidate{{ID: "core-007", ReleaseKey: "episode-007", ContentVersion: "0.1.4"}, {ID: "rough-07", ReleaseKey: "rough-spot-07", ContentVersion: "0.1.4"}, {ID: "core-07", ReleaseKey: "episode-07", ContentVersion: "1.0.0-01"}} {
+		if _, err := releaseTagFor(episode{ReleaseKey: candidate.ReleaseKey, ContentVersion: candidate.ContentVersion, Number: 7}, ""); err == nil {
+			t.Fatalf("releaseTagFor(%#v) succeeded, want malformed release identity rejection", candidate)
+		}
+	}
+}
+
 func TestPrepareBuildsImmutableAudioKeys(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
