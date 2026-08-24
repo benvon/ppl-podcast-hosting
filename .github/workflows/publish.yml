@@ -124,6 +124,8 @@ jobs:
           set -euo pipefail
           queued=$(mktemp)
           trap 'rm -f "$queued"' EXIT
+          candidates=$(go run ./cmd/pplsite release-candidates --episodes episodes --json)
+          jq -e 'type == "array"' >/dev/null <<<"$candidates"
           while IFS= read -r candidate; do
             id=$(jq -er '.id' <<<"$candidate")
             release_key=$(jq -er '.release_key' <<<"$candidate")
@@ -138,7 +140,7 @@ jobs:
                 ;;
               *) echo "Unknown release state for ${release_key}/v${content_version}: ${state}" >&2; exit 1 ;;
             esac
-          done < <(go run ./cmd/pplsite release-candidates --episodes episodes --json | jq -c '.[]')
+          done < <(jq -c '.[]' <<<"$candidates")
           jq -sc . "$queued" | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
 
   attest-and-release:
