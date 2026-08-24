@@ -319,6 +319,13 @@ func prepareCommand(args []string) error {
 	if err := writeFile(filepath.Join(outputDir, "show-notes.md"), notes); err != nil {
 		return err
 	}
+	seal, err := os.ReadFile(filepath.Join(*sourceDir, "source-release-seal.yaml"))
+	if err != nil {
+		return fmt.Errorf("read source release seal: %w", err)
+	}
+	if err := writeFile(filepath.Join(outputDir, "source-release-seal.yaml"), seal); err != nil {
+		return err
+	}
 	fmt.Printf("episode_id=%s\nstaging_key=%s\npublic_key=%s\nsha256=%s\nbytes=%d\n", input.ID, input.Audio.StagingKey, input.Audio.PublicKey, input.Audio.SHA256, input.Audio.Bytes)
 	return nil
 }
@@ -403,6 +410,13 @@ func releaseRecordCommand(args []string) error {
 	notesHash, _, err := fileSHA256(filepath.Join(filepath.Dir(*episodePath), "show-notes.md"))
 	if err != nil {
 		return err
+	}
+	sealHash, _, err := fileSHA256(filepath.Join(filepath.Dir(*episodePath), "source-release-seal.yaml"))
+	if err != nil {
+		return err
+	}
+	if sealHash != loaded.SourceReleaseSealSHA256 {
+		return errors.New("hosted source release seal does not match episode metadata")
 	}
 	record := releaseRecord{SchemaVersion: 1, SourceCommit: *commit, EpisodeManifestSHA: episodeHash, ShowNotesSHA: notesHash, Episode: releaseRecordEpisode{ID: loaded.ID, GUID: loaded.GUID, Title: loaded.Title, PublishedAt: loaded.PublishedAt, Duration: loaded.Duration, Season: loaded.Season, Number: loaded.Number, Explicit: loaded.Explicit, Audio: loaded.Audio, Chapters: loaded.Chapters, ChaptersAudioSHA256: loaded.ChaptersAudioSHA256, SourceReleaseSealSHA256: loaded.SourceReleaseSealSHA256}}
 	data, err := json.MarshalIndent(record, "", "  ")

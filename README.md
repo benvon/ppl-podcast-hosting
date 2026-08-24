@@ -54,9 +54,9 @@ the seal before it creates local metadata or sends bytes to private staging.
 If any input changes, return to the source repository, rerun its release gates,
 and create a new handoff directory.
 
-The generated hosted `episode.yaml` retains the SHA-256 of that seal. This
-forms the provenance link from the hosted release contract to the later GitHub
-release record and its attestation.
+The generated hosted release directory retains both the seal and its SHA-256 in
+`episode.yaml`. This forms the provenance link from the hosted release contract
+to the later GitHub release record and its attestation.
 
 `episode.yaml` is deliberately small and describes listener-facing facts. The
 staging location, final audio key, byte count, and checksum are written by the

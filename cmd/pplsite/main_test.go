@@ -89,6 +89,12 @@ audio: {}
 	if err := validateEpisode(prepared); err != nil {
 		t.Fatalf("validateEpisode(prepared) error = %v", err)
 	}
+	if prepared.SourceReleaseSealSHA256 == "" {
+		t.Fatal("prepareCommand() did not retain the source release seal checksum")
+	}
+	if _, err := os.Stat(filepath.Join(root, "episodes", "first", "source-release-seal.yaml")); err != nil {
+		t.Fatalf("prepareCommand() did not retain the source release seal: %v", err)
+	}
 }
 
 func TestPrepareRejectsChapterMarkersForDifferentAudio(t *testing.T) {
@@ -156,7 +162,12 @@ func TestReleaseRecordBindsHostedMetadataAndNotes(t *testing.T) {
 		t.Fatal(err)
 	}
 	episode := testEpisode("recorded", "pplstudyguide.com:recorded")
-	episode.SourceReleaseSealSHA256 = strings.Repeat("c", 64)
+	writeTestFile(t, filepath.Join(episodeDir, "source-release-seal.yaml"), []byte("source seal bytes"))
+	sealHash, _, err := fileSHA256(filepath.Join(episodeDir, "source-release-seal.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	episode.SourceReleaseSealSHA256 = sealHash
 	serialized, err := yaml.Marshal(episode.episode)
 	if err != nil {
 		t.Fatal(err)
@@ -175,7 +186,7 @@ func TestReleaseRecordBindsHostedMetadataAndNotes(t *testing.T) {
 	if err := json.Unmarshal(data, &record); err != nil {
 		t.Fatal(err)
 	}
-	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || record.Episode.SourceReleaseSealSHA256 != strings.Repeat("c", 64) || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
+	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || record.Episode.SourceReleaseSealSHA256 != episode.SourceReleaseSealSHA256 || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
 		t.Fatalf("unexpected release record: %#v", record)
 	}
 }
