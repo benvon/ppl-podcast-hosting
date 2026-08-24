@@ -31,10 +31,10 @@ The workflow never publishes an episode whose staged bytes do not match the
 recorded SHA-256. It uploads audio before it deploys the updated feed, so a
 podcast client cannot receive an enclosure URL for an unavailable file.
 
-For newly added episodes, a second workflow runs only after that publication
-workflow succeeds. It creates an immutable GitHub Release containing a small
-machine-readable publication record and uses GitHub artifact attestation to
-bind that record to the publishing workflow and commit. The record includes the
+For newly added episodes, follow-on jobs run only after the publication job
+succeeds. They create an immutable GitHub Release containing a small
+machine-readable publication record and use GitHub artifact attestation to bind
+that record to the publishing workflow and commit. The record includes the
 audio, metadata, show-notes, and source-handoff-seal hashes. It is forward-only:
 already published episodes are not retroactively released or attested.
 
