@@ -16,8 +16,9 @@ audio is never committed to Git.
 
 ## Release lifecycle
 
-1. Assemble a local release directory containing `episode.yaml`,
-   `show-notes.md`, and `audio.mp3`.
+1. Use the source repository's `release:prepare-handoff` command to assemble a
+   sealed local release directory containing `episode.yaml`, `show-notes.md`,
+   `audio.mp3`, and `source-release-seal.yaml`.
 2. From a new branch in this repository, run `scripts/stage-episode` against
    that directory. It checks the files, writes an immutable release manifest,
    and uploads the MP3 to the non-public staging bucket.
@@ -30,14 +31,32 @@ The workflow never publishes an episode whose staged bytes do not match the
 recorded SHA-256. It uploads audio before it deploys the updated feed, so a
 podcast client cannot receive an enclosure URL for an unavailable file.
 
+For newly added episodes, a second workflow runs only after that publication
+workflow succeeds. It creates an immutable GitHub Release containing a small
+machine-readable publication record and uses GitHub artifact attestation to
+bind that record to the publishing workflow and commit. The record includes the
+audio, metadata, show-notes, and source-handoff-seal hashes. It is forward-only:
+already published episodes are not retroactively released or attested.
+
 ## Local release directory
 
 ```text
 my-episode/
 ├── audio.mp3
 ├── episode.yaml
-└── show-notes.md
+├── show-notes.md
+└── source-release-seal.yaml
 ```
+
+`source-release-seal.yaml` records the SHA-256 identity of the exact three
+handoff inputs and the reviewed source package. `scripts/stage-episode` checks
+the seal before it creates local metadata or sends bytes to private staging.
+If any input changes, return to the source repository, rerun its release gates,
+and create a new handoff directory.
+
+The generated hosted `episode.yaml` retains the SHA-256 of that seal. This
+forms the provenance link from the hosted release contract to the later GitHub
+release record and its attestation.
 
 `episode.yaml` is deliberately small and describes listener-facing facts. The
 staging location, final audio key, byte count, and checksum are written by the
