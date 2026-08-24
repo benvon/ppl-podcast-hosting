@@ -59,7 +59,9 @@ audio: {}
 For a release with validated embedded MP3 chapters, add an optional `chapters`
 list to `episode.yaml`. Each entry needs a `title` and `start_ms`; the site
 renders it as a collapsible, click-to-seek chapter list. Omit `chapters` for an
-episode with no markers.
+episode with no markers. The chapter-generation step must supply
+`chapters_audio_sha256` from the exact MP3 it used. Staging compares that value
+with the supplied MP3 and rejects a chapter list for a different audio file.
 
 Keep show notes in the listener-facing format defined by the production plan.
 The generator renders Markdown without allowing raw HTML. It publishes the

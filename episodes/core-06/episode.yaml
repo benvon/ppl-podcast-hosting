@@ -38,6 +38,7 @@ chapters:
       start_ms: 1718430
     - title: Outro
       start_ms: 1818590
+chapters_audio_sha256: 1234ab9c541362cfefb59e7ac6b43836d67c211a3f39f5cba724aa6ec75dd41d
 audio:
     staging_key: staging/core-06/1234ab9c541362cfefb59e7ac6b43836d67c211a3f39f5cba724aa6ec75dd41d.mp3
     public_key: audio/core-06-1234ab9c541362cf.mp3

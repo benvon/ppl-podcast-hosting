@@ -54,6 +54,34 @@ audio: {}
 	}
 }
 
+func TestPrepareRejectsChapterMarkersForDifferentAudio(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("new audio"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: chapter-audio
+guid: pplstudyguide.com:chapter-audio
+title: Chapter audio binding
+description: Reject stale chapter metadata.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+explicit: false
+chapters:
+  - title: Opening
+    start_ms: 0
+chapters_audio_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+audio: {}
+`))
+	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err == nil || !strings.Contains(err.Error(), "chapter markers are not bound to the supplied MP3") {
+		t.Fatalf("prepareCommand() error = %v, want stale chapter metadata rejection", err)
+	}
+}
+
 func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	root := t.TempDir()
 	config := testConfig()
@@ -139,6 +167,7 @@ func TestEpisodePageRendersCollapsibleChaptersOnlyWhenPresent(t *testing.T) {
 	config := testConfig()
 	withChapters := testEpisode("with-chapters", "pplstudyguide.com:with-chapters")
 	withChapters.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Lesson", StartMS: 74_000}}
+	withChapters.ChaptersAudioSHA256 = withChapters.Audio.SHA256
 	withChaptersPath := filepath.Join(root, "with-chapters.html")
 	if err := writeEpisodePage(withChaptersPath, config, withChapters); err != nil {
 		t.Fatal(err)
@@ -147,7 +176,7 @@ func TestEpisodePageRendersCollapsibleChaptersOnlyWhenPresent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, expected := range []string{"<details class=\"chapters\">", "<summary>Chapters</summary>", "data-chapter-start=\"74.000\"", "<time>1:14</time>", "<span>Lesson</span>"} {
+	for _, expected := range []string{"<details class=\"chapters\" data-chapters-audio-sha256=\"" + withChapters.Audio.SHA256 + "\">", "data-audio-sha256=\"" + withChapters.Audio.SHA256 + "\"", "<summary>Chapters</summary>", "data-chapter-start=\"74.000\"", "<time>1:14</time>", "<span>Lesson</span>"} {
 		if !strings.Contains(string(withChaptersPage), expected) {
 			t.Fatalf("chapter page is missing %q: %s", expected, withChaptersPage)
 		}
@@ -171,8 +200,18 @@ func TestValidateEpisodeRejectsChapterAtOrBeyondDuration(t *testing.T) {
 	episode := testEpisode("chapter-boundary", "pplstudyguide.com:chapter-boundary")
 	episode.Duration = "00:01:00"
 	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Too late", StartMS: 60_000}}
+	episode.ChaptersAudioSHA256 = episode.Audio.SHA256
 	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "must start before the episode duration") {
 		t.Fatalf("validateEpisode() error = %v, want chapter-duration bound failure", err)
+	}
+}
+
+func TestValidateEpisodeRejectsChapterMarkersForDifferentAudio(t *testing.T) {
+	episode := testEpisode("chapter-audio-binding", "pplstudyguide.com:chapter-audio-binding")
+	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}}
+	episode.ChaptersAudioSHA256 = strings.Repeat("b", 64)
+	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "chapter markers must be bound to the staged audio checksum") {
+		t.Fatalf("validateEpisode() error = %v, want chapter/audio checksum binding failure", err)
 	}
 }
 
