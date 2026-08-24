@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -95,6 +96,9 @@ audio: {}
 	if _, err := os.Stat(filepath.Join(root, "episodes", "first", "source-release-seal.yaml")); err != nil {
 		t.Fatalf("prepareCommand() did not retain the source release seal: %v", err)
 	}
+	if _, err := os.Stat(filepath.Join(root, "episodes", "first", "source-episode.yaml")); err != nil {
+		t.Fatalf("prepareCommand() did not retain source episode metadata: %v", err)
+	}
 }
 
 func TestPrepareRejectsChapterMarkersForDifferentAudio(t *testing.T) {
@@ -157,25 +161,30 @@ audio: {}
 
 func TestReleaseRecordBindsHostedMetadataAndNotes(t *testing.T) {
 	root := t.TempDir()
-	episodeDir := filepath.Join(root, "episodes", "recorded")
-	if err := os.MkdirAll(episodeDir, 0o755); err != nil {
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	episode := testEpisode("recorded", "pplstudyguide.com:recorded")
-	writeTestFile(t, filepath.Join(episodeDir, "source-release-seal.yaml"), []byte("source seal bytes"))
-	sealHash, _, err := fileSHA256(filepath.Join(episodeDir, "source-release-seal.yaml"))
-	if err != nil {
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("recorded audio"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Recorded notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: recorded
+guid: pplstudyguide.com:recorded
+title: Recorded episode
+description: A provenance-bound release.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+explicit: false
+audio: {}
+`))
+	writeTestHandoffSeal(t, source, "0.1.0")
+	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err != nil {
 		t.Fatal(err)
 	}
-	episode.SourceReleaseSealSHA256 = sealHash
-	serialized, err := yaml.Marshal(episode.episode)
-	if err != nil {
-		t.Fatal(err)
-	}
-	writeTestFile(t, filepath.Join(episodeDir, "episode.yaml"), serialized)
-	writeTestFile(t, filepath.Join(episodeDir, "show-notes.md"), []byte("# Recorded notes\n"))
+	episodePath := filepath.Join(root, "episodes", "recorded", "episode.yaml")
 	output := filepath.Join(root, "record.json")
-	if err := releaseRecordCommand([]string{"--episode", filepath.Join(episodeDir, "episode.yaml"), "--out", output, "--commit", "abc123"}); err != nil {
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", output, "--commit", "abc123"}); err != nil {
 		t.Fatalf("releaseRecordCommand() error = %v", err)
 	}
 	var record releaseRecord
@@ -186,8 +195,52 @@ func TestReleaseRecordBindsHostedMetadataAndNotes(t *testing.T) {
 	if err := json.Unmarshal(data, &record); err != nil {
 		t.Fatal(err)
 	}
-	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || record.Episode.SourceReleaseSealSHA256 != episode.SourceReleaseSealSHA256 || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
+	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || !sha256Pattern.MatchString(record.Episode.SourceReleaseSealSHA256) || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
 		t.Fatalf("unexpected release record: %#v", record)
+	}
+	historicalDir := filepath.Join(root, "episodes", "historical")
+	if err := os.MkdirAll(historicalDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	historical := testEpisode("historical", "pplstudyguide.com:historical")
+	historicalData, err := yaml.Marshal(historical.episode)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(historicalDir, "episode.yaml"), historicalData)
+	writeTestFile(t, filepath.Join(historicalDir, "show-notes.md"), []byte("# Historical notes\n"))
+	candidates, err := releaseCandidateIDs(filepath.Join(root, "episodes"))
+	if err != nil || !reflect.DeepEqual(candidates, []string{"recorded"}) {
+		t.Fatalf("releaseCandidateIDs() = %#v, %v; want only the sealed recorded episode", candidates, err)
+	}
+	originalEpisode, err := os.ReadFile(episodePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := loadEpisode(episodePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared.Audio.SHA256 = strings.Repeat("b", 64)
+	mutatedEpisode, err := yaml.Marshal(prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, episodePath, mutatedEpisode)
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed-audio.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "hosted audio identity") {
+		t.Fatalf("releaseRecordCommand() error = %v, want sealed audio identity rejection", err)
+	}
+	writeTestFile(t, episodePath, originalEpisode)
+	writeTestFile(t, filepath.Join(root, "episodes", "recorded", "show-notes.md"), []byte("# Changed after staging\n"))
+	hostedEpisodes, err := loadEpisodes(filepath.Join(root, "episodes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := validateSealedEpisodeProvenance(filepath.Join(root, "episodes"), hostedEpisodes); err == nil || !strings.Contains(err.Error(), "show notes") {
+		t.Fatalf("validateSealedEpisodeProvenance() error = %v, want sealed show-notes rejection", err)
+	}
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "show notes") {
+		t.Fatalf("releaseRecordCommand() error = %v, want sealed show-notes rejection", err)
 	}
 }
 

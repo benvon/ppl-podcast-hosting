@@ -31,12 +31,14 @@ The workflow never publishes an episode whose staged bytes do not match the
 recorded SHA-256. It uploads audio before it deploys the updated feed, so a
 podcast client cannot receive an enclosure URL for an unavailable file.
 
-For newly added episodes, follow-on jobs run only after the publication job
-succeeds. They create an immutable GitHub Release containing a small
-machine-readable publication record and use GitHub artifact attestation to bind
-that record to the publishing workflow and commit. The record includes the
-audio, metadata, show-notes, and source-handoff-seal hashes. It is forward-only:
-already published episodes are not retroactively released or attested.
+After every successful publication job, follow-on jobs find newly sealed
+episode packages that do not yet have a GitHub Release. They create an
+immutable release containing a small machine-readable publication record and
+use GitHub artifact attestation to bind that record to the publishing workflow
+and commit. The record includes the audio, metadata, show-notes, and
+source-handoff-seal hashes. This state-based discovery recovers an episode if a
+previous pending run was superseded. It is forward-only: older episodes without
+the sealed-package marker are not retroactively released or attested.
 
 ## Local release directory
 
@@ -54,9 +56,12 @@ the seal before it creates local metadata or sends bytes to private staging.
 If any input changes, return to the source repository, rerun its release gates,
 and create a new handoff directory.
 
-The generated hosted release directory retains both the seal and its SHA-256 in
-`episode.yaml`. This forms the provenance link from the hosted release contract
-to the later GitHub release record and its attestation.
+The generated hosted release directory retains the seal, the original
+source-facing `episode.yaml`, and the seal SHA-256 in the published contract.
+Validation compares those retained inputs, the hosted show notes, and the
+immutable audio identity before publication and before an attested record can
+be produced. This forms the provenance link from the hosted release contract to
+the later GitHub release record and its attestation.
 
 `episode.yaml` is deliberately small and describes listener-facing facts. The
 staging location, final audio key, byte count, and checksum are written by the

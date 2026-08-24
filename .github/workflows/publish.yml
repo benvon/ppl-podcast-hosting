@@ -93,27 +93,30 @@ jobs:
 
   discover-new-episodes:
     needs: publish
-    if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     outputs:
       episodes: ${{ steps.discover.outputs.episodes }}
     steps:
       - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
         with:
-          fetch-depth: 0
+          go-version: '1.26.5'
 
       - id: discover
         env:
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            echo 'episodes=[]' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          mapfile -t ids < <(git diff --diff-filter=A --name-only "$BEFORE" "$AFTER" -- 'episodes/*/episode.yaml' | sed -nE 's#^episodes/([^/]+)/episode\.yaml$#\1#p' | sort -u)
+          ids=()
+          while IFS= read -r candidate; do
+            [[ -z "$candidate" ]] && continue
+            if gh release view "episode-${candidate}" >/dev/null 2>&1; then
+              continue
+            fi
+            ids+=("$candidate")
+          done < <(go run ./cmd/pplsite release-candidates --episodes episodes)
           printf '%s\n' "${ids[@]:-}" | jq -Rsc 'split("\n") | map(select(length > 0))' | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
 
   attest-and-release:
