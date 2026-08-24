@@ -1,0 +1,47 @@
+id: core-07
+guid: pplstudyguide.com:core-07
+title: Flight Instruments and Failure Recognition
+description: A practical study of flight instruments, their shared sources, and how to recognize an instrument story that does not fit.
+published_at: 2026-08-24T13:31:04Z
+duration: "00:37:11"
+season: 1
+number: 7
+explicit: false
+audio:
+    staging_key: staging/core-07/f8eaf36292963b07307c66629bad291e10c0186c6a3243629ac4216e30e689c7.mp3
+    public_key: audio/core-07-f8eaf36292963b07.mp3
+    sha256: f8eaf36292963b07307c66629bad291e10c0186c6a3243629ac4216e30e689c7
+    bytes: 44624406
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 23850
+    - title: Podcast introduction
+      start_ms: 60750
+    - title: What the ACS is asking you to connect
+      start_ms: 90200
+    - title: Three questions for every instrument
+      start_ms: 203260
+    - title: 'Pitot-static: pressure becomes information'
+      start_ms: 395740
+    - title: A blocked pitot source changes one instrument
+      start_ms: 562120
+    - title: A blocked static source changes the family
+      start_ms: 765020
+    - title: Electronic displays still have source paths
+      start_ms: 915750
+    - title: 'Gyroscopes: stability needs power'
+      start_ms: 1047910
+    - title: What each gyro can and cannot tell you
+      start_ms: 1221570
+    - title: Magnetic-compass design and errors
+      start_ms: 1384580
+    - title: Cross-check by source and failure path
+      start_ms: 1714760
+    - title: Retrieval review
+      start_ms: 2038000
+    - title: Outro
+      start_ms: 2188530
+chapters_audio_sha256: f8eaf36292963b07307c66629bad291e10c0186c6a3243629ac4216e30e689c7
