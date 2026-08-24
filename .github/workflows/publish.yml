@@ -41,6 +41,15 @@ jobs:
         with:
           go-version: '1.26.5'
 
+      - name: Require the main publication ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
+            echo "Publication is allowed only from refs/heads/main; got ${GITHUB_REF}." >&2
+            exit 1
+          }
+
       - name: Validate release contract
         run: go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes
 
@@ -94,6 +103,9 @@ jobs:
   discover-new-episodes:
     needs: publish
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      attestations: read
     outputs:
       episodes: ${{ steps.discover.outputs.episodes }}
     steps:
@@ -113,12 +125,12 @@ jobs:
           ids=()
           while IFS= read -r candidate; do
             [[ -z "$candidate" ]] && continue
-            state=$(bash scripts/release-state.sh "episode-${candidate}" "${candidate}.json")
+            state=$(bash scripts/release-state.sh "episode-${candidate}" "${candidate}.json" "${candidate}")
             case "$state" in
               complete) continue ;;
-              missing|draft) ids+=("$candidate") ;;
-              published-missing-asset)
-                echo "Published GitHub Release episode-${candidate} lacks ${candidate}.json; refusing to overwrite an immutable release." >&2
+              missing|draft|orphan-tag) ids+=("$candidate") ;;
+              published-missing-asset|published-invalid|published-record-mismatch)
+                echo "Published GitHub Release episode-${candidate} is not a valid immutable release record (${state}); refusing to overwrite it." >&2
                 exit 1
                 ;;
               *) echo "Unknown release state for episode-${candidate}: ${state}" >&2; exit 1 ;;
@@ -166,25 +178,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="episode-${EPISODE}"
-          state=$(bash scripts/release-state.sh "$tag" "${EPISODE}.json")
-          case "$state" in
-            complete)
-              echo "GitHub release record already exists for ${tag}; leaving it immutable."
-              exit 0
-              ;;
-            draft)
-              echo "Removing incomplete draft ${tag} before retrying its release record."
-              gh release delete "$tag" --yes --cleanup-tag
-              ;;
-            missing) ;;
-            published-missing-asset)
-              echo "Published GitHub Release ${tag} lacks ${EPISODE}.json; refusing to overwrite an immutable release." >&2
-              exit 1
-              ;;
-            *) echo "Unknown release state for ${tag}: ${state}" >&2; exit 1 ;;
-          esac
-          gh release create "$tag" "release-records/${EPISODE}.json" \
-            --target "$PUBLISHED_COMMIT" \
-            --title "Published ${EPISODE}" \
-            --notes "Machine-readable publication record for ${EPISODE}. Its SHA-256 is independently attested by GitHub Actions."
+          bash scripts/publish-release.sh \
+            "episode-${EPISODE}" \
+            "release-records/${EPISODE}.json" \
+            "$EPISODE" \
+            "$PUBLISHED_COMMIT"

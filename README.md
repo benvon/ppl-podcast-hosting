@@ -41,10 +41,19 @@ previous pending run was superseded. It is forward-only: older episodes without
 the sealed-package marker are not retroactively released or attested.
 
 A release is considered complete only when it is published and contains its
-episode publication-record JSON asset. If GitHub leaves a draft after a
-transient asset-upload or publish failure, the next successful publish removes
-that draft and retries it. A published release missing its record fails closed
-instead of silently claiming the episode is attested.
+episode publication-record JSON asset, its tag resolves to the commit named by
+that record, the record identifies the expected episode, and GitHub verifies an
+attestation from this repository's `publish.yml` workflow on `main` at that
+exact commit. If GitHub leaves a draft or orphaned tag after a transient
+asset-upload, cleanup, or publish failure, the next successful publish removes
+that incomplete state and retries it. Creation ends with the same full
+verification, including an exact byte comparison with the locally attested
+record. An invalid published release fails closed instead of silently claiming
+the episode is attested.
+
+Manual recovery runs are allowed only from `main`. Publication jobs share one
+non-cancelling concurrency group, so retry cleanup, deployment, and release
+creation cannot overlap another publication run.
 
 ## Local release directory
 
