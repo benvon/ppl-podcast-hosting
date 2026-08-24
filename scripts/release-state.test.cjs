@@ -1,0 +1,92 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const childProcess = require("node:child_process");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const test = require("node:test");
+
+const commit = "0123456789abcdef0123456789abcdef01234567";
+
+test("release state closes only when the tag, episode, commit, and record agree", () => {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "ppl-release-state-test-"));
+  const fakeGh = path.join(temporary, "gh");
+  const expectedRecord = path.join(temporary, "core-07.json");
+  fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, episode: { id: "core-07" } })}\n`);
+  fs.writeFileSync(fakeGh, `#!/usr/bin/env bash
+set -euo pipefail
+endpoint="\${!#}"
+if [[ "$1 $2" == "attestation verify" ]]; then
+  if [[ "\${RELEASE_STATE}" == "unattested" ]]; then exit 1; fi
+  exit 0
+fi
+if [[ "$1" != "api" ]]; then exit 90; fi
+case "$endpoint" in
+  repos/*/releases/tags/*)
+    case "\${RELEASE_STATE}" in
+      missing|orphan-tag) echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
+      unavailable) echo "gh: service unavailable (HTTP 502)" >&2; exit 1 ;;
+      draft) echo '{"draft":true,"prerelease":false,"tag_name":"episode-core-07","assets":[]}' ;;
+      published-missing-asset) echo '{"draft":false,"prerelease":false,"tag_name":"episode-core-07","assets":[]}' ;;
+      prerelease) echo '{"draft":false,"prerelease":true,"tag_name":"episode-core-07","assets":[{"name":"core-07.json","id":1}]}' ;;
+      *) echo '{"draft":false,"prerelease":false,"tag_name":"episode-core-07","assets":[{"name":"core-07.json","id":1}]}' ;;
+    esac
+    ;;
+  repos/*/git/ref/tags/*)
+    if [[ "\${RELEASE_STATE}" == "missing" ]]; then echo "gh: Not Found (HTTP 404)" >&2; exit 1; fi
+    printf '{"object":{"type":"commit","sha":"%s"}}\\n' "\${TAG_COMMIT}"
+    ;;
+  repos/*/releases/assets/*)
+    record_commit="\${TAG_COMMIT}"
+    record_episode="core-07"
+    [[ "\${RELEASE_STATE}" == "invalid-record" ]] && record_commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    [[ "\${RELEASE_STATE}" == "wrong-episode" ]] && record_episode="core-08"
+    printf '{"schema_version":1,"source_commit":"%s","episode":{"id":"%s"}}\\n' "$record_commit" "$record_episode"
+    ;;
+  *) exit 91 ;;
+esac
+`, { mode: 0o755 });
+  try {
+    const state = (fixture, includeExpectedRecord = false) => childProcess.spawnSync("bash", [
+      path.join(__dirname, "release-state.sh"),
+      "episode-core-07",
+      "core-07.json",
+      "core-07",
+      ...(includeExpectedRecord ? [expectedRecord] : []),
+    ], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        GH_BIN: fakeGh,
+        GH_REPO: "benvon/ppl-postcast-hosting",
+        RELEASE_STATE: fixture,
+        TAG_COMMIT: commit,
+      },
+    });
+    const expectState = (fixture, expected, includeExpectedRecord = false) => {
+      const result = state(fixture, includeExpectedRecord);
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stdout.trim(), expected, result.stderr);
+    };
+    expectState("missing", "missing");
+    expectState("orphan-tag", "orphan-tag");
+    expectState("draft", "draft");
+    expectState("complete", "complete");
+    expectState("complete", "complete", true);
+    expectState("published-missing-asset", "published-missing-asset");
+    expectState("prerelease", "published-invalid");
+    expectState("invalid-record", "published-invalid");
+    expectState("wrong-episode", "published-invalid");
+    expectState("unattested", "published-invalid");
+
+    fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, episode: { id: "core-07", changed: true } })}\n`);
+    expectState("complete", "published-record-mismatch", true);
+
+    const unavailable = state("unavailable");
+    assert.notEqual(unavailable.status, 0);
+    assert.match(unavailable.stderr, /Could not inspect/);
+  } finally {
+    fs.rmSync(temporary, { recursive: true, force: true });
+  }
+});

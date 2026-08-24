@@ -16,8 +16,9 @@ audio is never committed to Git.
 
 ## Release lifecycle
 
-1. Assemble a local release directory containing `episode.yaml`,
-   `show-notes.md`, and `audio.mp3`.
+1. Use the source repository's `release:prepare-handoff` command to assemble a
+   sealed local release directory containing `episode.yaml`, `show-notes.md`,
+   `audio.mp3`, and `source-release-seal.yaml`.
 2. From a new branch in this repository, run `scripts/stage-episode` against
    that directory. It checks the files, writes an immutable release manifest,
    and uploads the MP3 to the non-public staging bucket.
@@ -30,14 +31,52 @@ The workflow never publishes an episode whose staged bytes do not match the
 recorded SHA-256. It uploads audio before it deploys the updated feed, so a
 podcast client cannot receive an enclosure URL for an unavailable file.
 
+After every successful publication job, follow-on jobs find newly sealed
+episode packages that do not yet have a GitHub Release. They create an
+immutable release containing a small machine-readable publication record and
+use GitHub artifact attestation to bind that record to the publishing workflow
+and commit. The record includes the audio, metadata, show-notes, and
+source-handoff-seal hashes. This state-based discovery recovers an episode if a
+previous pending run was superseded. It is forward-only: older episodes without
+the sealed-package marker are not retroactively released or attested.
+
+A release is considered complete only when it is published and contains its
+episode publication-record JSON asset, its tag resolves to the commit named by
+that record, the record identifies the expected episode, and GitHub verifies an
+attestation from this repository's `publish.yml` workflow on `main` at that
+exact commit. If GitHub leaves a draft or orphaned tag after a transient
+asset-upload, cleanup, or publish failure, the next successful publish removes
+that incomplete state and retries it. Creation ends with the same full
+verification, including an exact byte comparison with the locally attested
+record. An invalid published release fails closed instead of silently claiming
+the episode is attested.
+
+Manual recovery runs are allowed only from `main`. Publication jobs share one
+non-cancelling concurrency group, so retry cleanup, deployment, and release
+creation cannot overlap another publication run.
+
 ## Local release directory
 
 ```text
 my-episode/
 ├── audio.mp3
 ├── episode.yaml
-└── show-notes.md
+├── show-notes.md
+└── source-release-seal.yaml
 ```
+
+`source-release-seal.yaml` records the SHA-256 identity of the exact three
+handoff inputs and the reviewed source package. `scripts/stage-episode` checks
+the seal before it creates local metadata or sends bytes to private staging.
+If any input changes, return to the source repository, rerun its release gates,
+and create a new handoff directory.
+
+The generated hosted release directory retains the seal, the original
+source-facing `episode.yaml`, and the seal SHA-256 in the published contract.
+Validation compares those retained inputs, the hosted show notes, and the
+immutable audio identity before publication and before an attested record can
+be produced. This forms the provenance link from the hosted release contract to
+the later GitHub release record and its attestation.
 
 `episode.yaml` is deliberately small and describes listener-facing facts. The
 staging location, final audio key, byte count, and checksum are written by the

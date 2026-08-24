@@ -2,13 +2,50 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
+
+func writeTestHandoffSeal(t *testing.T, source string, version string) {
+	t.Helper()
+	input, err := loadEpisode(filepath.Join(source, "episode.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	handoffFiles := map[string]string{}
+	for _, name := range []string{"episode.yaml", "show-notes.md", "audio.mp3"} {
+		sum, _, err := fileSHA256(filepath.Join(source, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		handoffFiles[name] = sum
+	}
+	_, audioBytes, err := fileSHA256(filepath.Join(source, "audio.mp3"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := handoffSealPayload{Audio: handoffSealAudio{Bytes: audioBytes, SHA256: handoffFiles["audio.mp3"]}, Episode: handoffSealEpisode{ID: input.ID, PublishedAt: input.PublishedAt.Format(time.RFC3339), Title: input.Title, Version: version}, HandoffFiles: handoffFiles, SchemaVersion: 1, SourcePackageFiles: map[string]string{"episode.yaml": handoffFiles["episode.yaml"]}}
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest := sha256.Sum256(encoded)
+	seal, err := yaml.Marshal(handoffSeal{SchemaVersion: 1, Payload: payload, PayloadSHA256: hex.EncodeToString(digest[:])})
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "source-release-seal.yaml"), seal)
+}
 
 func TestValidateAllRejectsDuplicateGUID(t *testing.T) {
 	config := testConfig()
@@ -38,6 +75,7 @@ number: 1
 explicit: false
 audio: {}
 `))
+	writeTestHandoffSeal(t, source, "0.1.0")
 
 	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err != nil {
 		t.Fatalf("prepareCommand() error = %v", err)
@@ -51,6 +89,15 @@ audio: {}
 	}
 	if err := validateEpisode(prepared); err != nil {
 		t.Fatalf("validateEpisode(prepared) error = %v", err)
+	}
+	if prepared.SourceReleaseSealSHA256 == "" {
+		t.Fatal("prepareCommand() did not retain the source release seal checksum")
+	}
+	if _, err := os.Stat(filepath.Join(root, "episodes", "first", "source-release-seal.yaml")); err != nil {
+		t.Fatalf("prepareCommand() did not retain the source release seal: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "episodes", "first", "source-episode.yaml")); err != nil {
+		t.Fatalf("prepareCommand() did not retain source episode metadata: %v", err)
 	}
 }
 
@@ -77,8 +124,123 @@ chapters:
 chapters_audio_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 audio: {}
 `))
+	writeTestHandoffSeal(t, source, "0.1.0")
 	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err == nil || !strings.Contains(err.Error(), "chapter markers are not bound to the supplied MP3") {
 		t.Fatalf("prepareCommand() error = %v, want stale chapter metadata rejection", err)
+	}
+}
+
+func TestVerifyHandoffRejectsMutatedSealedInput(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("sealed audio"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Sealed notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: sealed
+guid: pplstudyguide.com:sealed
+title: Sealed episode
+description: A sealed release input.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+explicit: false
+audio: {}
+`))
+	writeTestHandoffSeal(t, source, "0.1.0")
+	if err := verifyHandoffCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3")}); err != nil {
+		t.Fatalf("verifyHandoffCommand() error = %v", err)
+	}
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Changed after sealing\n"))
+	if err := verifyHandoffCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3")}); err == nil || !strings.Contains(err.Error(), "sealed show-notes.md") {
+		t.Fatalf("verifyHandoffCommand() error = %v, want sealed show-notes rejection", err)
+	}
+}
+
+func TestReleaseRecordBindsHostedMetadataAndNotes(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("recorded audio"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Recorded notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: recorded
+guid: pplstudyguide.com:recorded
+title: Recorded episode
+description: A provenance-bound release.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+explicit: false
+audio: {}
+`))
+	writeTestHandoffSeal(t, source, "0.1.0")
+	if err := prepareCommand([]string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", filepath.Join(root, "episodes")}); err != nil {
+		t.Fatal(err)
+	}
+	episodePath := filepath.Join(root, "episodes", "recorded", "episode.yaml")
+	output := filepath.Join(root, "record.json")
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", output, "--commit", "abc123"}); err != nil {
+		t.Fatalf("releaseRecordCommand() error = %v", err)
+	}
+	var record releaseRecord
+	data, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &record); err != nil {
+		t.Fatal(err)
+	}
+	if record.SchemaVersion != 1 || record.SourceCommit != "abc123" || record.Episode.ID != "recorded" || !sha256Pattern.MatchString(record.Episode.SourceReleaseSealSHA256) || !sha256Pattern.MatchString(record.EpisodeManifestSHA) || !sha256Pattern.MatchString(record.ShowNotesSHA) {
+		t.Fatalf("unexpected release record: %#v", record)
+	}
+	historicalDir := filepath.Join(root, "episodes", "historical")
+	if err := os.MkdirAll(historicalDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	historical := testEpisode("historical", "pplstudyguide.com:historical")
+	historicalData, err := yaml.Marshal(historical.episode)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(historicalDir, "episode.yaml"), historicalData)
+	writeTestFile(t, filepath.Join(historicalDir, "show-notes.md"), []byte("# Historical notes\n"))
+	candidates, err := releaseCandidateIDs(filepath.Join(root, "episodes"))
+	if err != nil || !reflect.DeepEqual(candidates, []string{"recorded"}) {
+		t.Fatalf("releaseCandidateIDs() = %#v, %v; want only the sealed recorded episode", candidates, err)
+	}
+	originalEpisode, err := os.ReadFile(episodePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := loadEpisode(episodePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared.Audio.SHA256 = strings.Repeat("b", 64)
+	mutatedEpisode, err := yaml.Marshal(prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, episodePath, mutatedEpisode)
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed-audio.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "hosted audio identity") {
+		t.Fatalf("releaseRecordCommand() error = %v, want sealed audio identity rejection", err)
+	}
+	writeTestFile(t, episodePath, originalEpisode)
+	writeTestFile(t, filepath.Join(root, "episodes", "recorded", "show-notes.md"), []byte("# Changed after staging\n"))
+	hostedEpisodes, err := loadEpisodes(filepath.Join(root, "episodes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := validateSealedEpisodeProvenance(filepath.Join(root, "episodes"), hostedEpisodes); err == nil || !strings.Contains(err.Error(), "show notes") {
+		t.Fatalf("validateSealedEpisodeProvenance() error = %v, want sealed show-notes rejection", err)
+	}
+	if err := releaseRecordCommand([]string{"--episode", episodePath, "--out", filepath.Join(root, "changed.json"), "--commit", "abc123"}); err == nil || !strings.Contains(err.Error(), "show notes") {
+		t.Fatalf("releaseRecordCommand() error = %v, want sealed show-notes rejection", err)
 	}
 }
 

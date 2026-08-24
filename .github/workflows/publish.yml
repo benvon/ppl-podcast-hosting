@@ -41,6 +41,15 @@ jobs:
         with:
           go-version: '1.26.5'
 
+      - name: Require the main publication ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
+            echo "Publication is allowed only from refs/heads/main; got ${GITHUB_REF}." >&2
+            exit 1
+          }
+
       - name: Validate release contract
         run: go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes
 
@@ -90,3 +99,87 @@ jobs:
 
       - name: Deploy static site to Cloudflare Pages
         run: npx --yes wrangler@4 pages deploy dist --project-name pplstudyguide --branch main
+
+  discover-new-episodes:
+    needs: publish
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      attestations: read
+    outputs:
+      episodes: ${{ steps.discover.outputs.episodes }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.5'
+
+      - id: discover
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ids=()
+          while IFS= read -r candidate; do
+            [[ -z "$candidate" ]] && continue
+            state=$(bash scripts/release-state.sh "episode-${candidate}" "${candidate}.json" "${candidate}")
+            case "$state" in
+              complete) continue ;;
+              missing|draft|orphan-tag) ids+=("$candidate") ;;
+              published-missing-asset|published-invalid|published-record-mismatch)
+                echo "Published GitHub Release episode-${candidate} is not a valid immutable release record (${state}); refusing to overwrite it." >&2
+                exit 1
+                ;;
+              *) echo "Unknown release state for episode-${candidate}: ${state}" >&2; exit 1 ;;
+            esac
+          done < <(go run ./cmd/pplsite release-candidates --episodes episodes)
+          printf '%s\n' "${ids[@]:-}" | jq -Rsc 'split("\n") | map(select(length > 0))' | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
+
+  attest-and-release:
+    needs: discover-new-episodes
+    if: needs.discover-new-episodes.outputs.episodes != '[]'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        episode: ${{ fromJSON(needs.discover-new-episodes.outputs.episodes) }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.5'
+
+      - name: Build publication record
+        run: >-
+          go run ./cmd/pplsite release-record
+          --episode episodes/${{ matrix.episode }}/episode.yaml
+          --out release-records/${{ matrix.episode }}.json
+          --commit ${{ github.sha }}
+
+      - name: Attest publication record
+        uses: actions/attest@v4
+        with:
+          subject-path: release-records/${{ matrix.episode }}.json
+
+      - name: Create GitHub release record
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EPISODE: ${{ matrix.episode }}
+          PUBLISHED_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/publish-release.sh \
+            "episode-${EPISODE}" \
+            "release-records/${EPISODE}.json" \
+            "$EPISODE" \
+            "$PUBLISHED_COMMIT"

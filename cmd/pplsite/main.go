@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"flag"
@@ -13,6 +14,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -51,18 +53,19 @@ type showConfig struct {
 }
 
 type episode struct {
-	ID                  string    `yaml:"id"`
-	GUID                string    `yaml:"guid"`
-	Title               string    `yaml:"title"`
-	Description         string    `yaml:"description"`
-	PublishedAt         time.Time `yaml:"published_at"`
-	Duration            string    `yaml:"duration"`
-	Season              int       `yaml:"season"`
-	Number              int       `yaml:"number"`
-	Explicit            bool      `yaml:"explicit"`
-	Audio               audio     `yaml:"audio"`
-	Chapters            []chapter `yaml:"chapters"`
-	ChaptersAudioSHA256 string    `yaml:"chapters_audio_sha256"`
+	ID                      string    `yaml:"id"`
+	GUID                    string    `yaml:"guid"`
+	Title                   string    `yaml:"title"`
+	Description             string    `yaml:"description"`
+	PublishedAt             time.Time `yaml:"published_at"`
+	Duration                string    `yaml:"duration"`
+	Season                  int       `yaml:"season"`
+	Number                  int       `yaml:"number"`
+	Explicit                bool      `yaml:"explicit"`
+	Audio                   audio     `yaml:"audio"`
+	Chapters                []chapter `yaml:"chapters"`
+	ChaptersAudioSHA256     string    `yaml:"chapters_audio_sha256"`
+	SourceReleaseSealSHA256 string    `yaml:"source_release_seal_sha256"`
 }
 
 type chapter struct {
@@ -78,6 +81,58 @@ type audio struct {
 	ContentType string `yaml:"content_type"`
 }
 
+type handoffSeal struct {
+	SchemaVersion int                `yaml:"schema_version"`
+	SealedAtUTC   string             `yaml:"sealed_at_utc"`
+	Payload       handoffSealPayload `yaml:"payload"`
+	PayloadSHA256 string             `yaml:"payload_sha256"`
+}
+
+// Field order is alphabetical so encoding/json produces the same canonical
+// payload digest as the source repository's stable JSON serializer.
+type handoffSealPayload struct {
+	Audio              handoffSealAudio   `yaml:"audio" json:"audio"`
+	Episode            handoffSealEpisode `yaml:"episode" json:"episode"`
+	HandoffFiles       map[string]string  `yaml:"handoff_files" json:"handoff_files"`
+	SchemaVersion      int                `yaml:"schema_version" json:"schema_version"`
+	SourcePackageFiles map[string]string  `yaml:"source_package_files" json:"source_package_files"`
+}
+
+type handoffSealAudio struct {
+	Bytes  int64  `yaml:"bytes" json:"bytes"`
+	SHA256 string `yaml:"sha256" json:"sha256"`
+}
+
+type handoffSealEpisode struct {
+	ID          string `yaml:"id" json:"id"`
+	PublishedAt string `yaml:"published_at" json:"published_at"`
+	Title       string `yaml:"title" json:"title"`
+	Version     string `yaml:"version" json:"version"`
+}
+
+type releaseRecord struct {
+	SchemaVersion      int                  `json:"schema_version"`
+	SourceCommit       string               `json:"source_commit"`
+	EpisodeManifestSHA string               `json:"episode_manifest_sha256"`
+	ShowNotesSHA       string               `json:"show_notes_sha256"`
+	Episode            releaseRecordEpisode `json:"episode"`
+}
+
+type releaseRecordEpisode struct {
+	ID                      string    `json:"id"`
+	GUID                    string    `json:"guid"`
+	Title                   string    `json:"title"`
+	PublishedAt             time.Time `json:"published_at"`
+	Duration                string    `json:"duration"`
+	Season                  int       `json:"season"`
+	Number                  int       `json:"number"`
+	Explicit                bool      `json:"explicit"`
+	Audio                   audio     `json:"audio"`
+	Chapters                []chapter `json:"chapters,omitempty"`
+	ChaptersAudioSHA256     string    `json:"chapters_audio_sha256,omitempty"`
+	SourceReleaseSealSHA256 string    `json:"source_release_seal_sha256"`
+}
+
 type loadedEpisode struct {
 	episode
 	NotesHTML       template.HTML
@@ -86,7 +141,7 @@ type loadedEpisode struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fatalf("usage: pplsite <validate|build|prepare|publish-plan>")
+		fatalf("usage: pplsite <validate|build|prepare|verify-handoff|release-candidates|release-record|publish-plan>")
 	}
 
 	var err error
@@ -97,6 +152,12 @@ func main() {
 		err = buildCommand(os.Args[2:])
 	case "prepare":
 		err = prepareCommand(os.Args[2:])
+	case "verify-handoff":
+		err = verifyHandoffCommand(os.Args[2:])
+	case "release-candidates":
+		err = releaseCandidatesCommand(os.Args[2:])
+	case "release-record":
+		err = releaseRecordCommand(os.Args[2:])
 	case "publish-plan":
 		err = publishPlanCommand(os.Args[2:])
 	default:
@@ -125,6 +186,9 @@ func validateCommand(args []string) error {
 	if err := validateAll(config, episodes); err != nil {
 		return err
 	}
+	if err := validateSealedEpisodeProvenance(*episodesDir, episodes); err != nil {
+		return err
+	}
 	fmt.Printf("validated %d episode(s)\n", len(episodes))
 	return nil
 }
@@ -149,6 +213,9 @@ func buildCommand(args []string) error {
 		return err
 	}
 	if err := validateAll(config, episodes); err != nil {
+		return err
+	}
+	if err := validateSealedEpisodeProvenance(*episodesDir, episodes); err != nil {
 		return err
 	}
 	if err := os.RemoveAll(*outDir); err != nil {
@@ -199,6 +266,9 @@ func prepareCommand(args []string) error {
 	if *sourceDir == "" || *audioPath == "" {
 		return errors.New("--source and --audio are required")
 	}
+	if err := verifyHandoffCommand([]string{"--source", *sourceDir, "--audio", *audioPath}); err != nil {
+		return err
+	}
 	if err := rejectUnsafeOutput(*outDir); err != nil {
 		return err
 	}
@@ -231,6 +301,11 @@ func prepareCommand(args []string) error {
 		Bytes:       size,
 		ContentType: "audio/mpeg",
 	}
+	sealHash, _, err := fileSHA256(filepath.Join(*sourceDir, "source-release-seal.yaml"))
+	if err != nil {
+		return err
+	}
+	input.SourceReleaseSealSHA256 = sealHash
 	if len(input.Chapters) > 0 && input.ChaptersAudioSHA256 != sum {
 		return fmt.Errorf("episode %q chapter markers are not bound to the supplied MP3", input.ID)
 	}
@@ -253,8 +328,231 @@ func prepareCommand(args []string) error {
 	if err := writeFile(filepath.Join(outputDir, "show-notes.md"), notes); err != nil {
 		return err
 	}
+	sourceEpisode, err := os.ReadFile(filepath.Join(*sourceDir, "episode.yaml"))
+	if err != nil {
+		return fmt.Errorf("read source episode metadata: %w", err)
+	}
+	if err := writeFile(filepath.Join(outputDir, "source-episode.yaml"), sourceEpisode); err != nil {
+		return err
+	}
+	seal, err := os.ReadFile(filepath.Join(*sourceDir, "source-release-seal.yaml"))
+	if err != nil {
+		return fmt.Errorf("read source release seal: %w", err)
+	}
+	if err := writeFile(filepath.Join(outputDir, "source-release-seal.yaml"), seal); err != nil {
+		return err
+	}
 	fmt.Printf("episode_id=%s\nstaging_key=%s\npublic_key=%s\nsha256=%s\nbytes=%d\n", input.ID, input.Audio.StagingKey, input.Audio.PublicKey, input.Audio.SHA256, input.Audio.Bytes)
 	return nil
+}
+
+func verifyHandoffCommand(args []string) error {
+	flags := flag.NewFlagSet("verify-handoff", flag.ContinueOnError)
+	sourceDir := flags.String("source", "", "sealed local release directory")
+	audioPath := flags.String("audio", "", "local MP3 path")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if *sourceDir == "" || *audioPath == "" {
+		return errors.New("--source and --audio are required")
+	}
+	seal, err := readHandoffSeal(*sourceDir)
+	if err != nil {
+		return err
+	}
+	for _, name := range []string{"episode.yaml", "show-notes.md", "audio.mp3"} {
+		expected := strings.ToLower(seal.Payload.HandoffFiles[name])
+		if !sha256Pattern.MatchString(expected) {
+			return fmt.Errorf("source release seal has no valid checksum for %s", name)
+		}
+		actual, _, err := fileSHA256(filepath.Join(*sourceDir, name))
+		if err != nil {
+			return err
+		}
+		if actual != expected {
+			return fmt.Errorf("sealed %s does not match its current bytes", name)
+		}
+	}
+	actualAudioHash, actualAudioBytes, err := fileSHA256(*audioPath)
+	if err != nil {
+		return err
+	}
+	if actualAudioHash != strings.ToLower(seal.Payload.Audio.SHA256) || actualAudioBytes != seal.Payload.Audio.Bytes || actualAudioHash != strings.ToLower(seal.Payload.HandoffFiles["audio.mp3"]) {
+		return errors.New("sealed audio identity does not match the supplied MP3")
+	}
+	input, err := loadEpisode(filepath.Join(*sourceDir, "episode.yaml"))
+	if err != nil {
+		return err
+	}
+	if input.ID != seal.Payload.Episode.ID || input.Title != seal.Payload.Episode.Title || input.PublishedAt.Format(time.RFC3339) != seal.Payload.Episode.PublishedAt {
+		return errors.New("sealed episode identity does not match the handoff metadata")
+	}
+	return nil
+}
+
+func readHandoffSeal(directory string) (handoffSeal, error) {
+	var seal handoffSeal
+	if err := decodeYAMLFile(filepath.Join(directory, "source-release-seal.yaml"), &seal); err != nil {
+		return handoffSeal{}, fmt.Errorf("read source release seal: %w", err)
+	}
+	if seal.SchemaVersion != 1 || seal.Payload.SchemaVersion != 1 {
+		return handoffSeal{}, errors.New("unsupported source release seal schema")
+	}
+	encoded, err := json.Marshal(seal.Payload)
+	if err != nil {
+		return handoffSeal{}, fmt.Errorf("serialize source release seal payload: %w", err)
+	}
+	payloadHash := sha256.Sum256(encoded)
+	if seal.PayloadSHA256 != hex.EncodeToString(payloadHash[:]) {
+		return handoffSeal{}, errors.New("source release seal digest does not match its payload")
+	}
+	return seal, nil
+}
+
+func verifyHostedReleaseProvenance(episodePath string, hosted episode) error {
+	directory := filepath.Dir(episodePath)
+	seal, err := readHandoffSeal(directory)
+	if err != nil {
+		return err
+	}
+	sealHash, _, err := fileSHA256(filepath.Join(directory, "source-release-seal.yaml"))
+	if err != nil {
+		return err
+	}
+	if sealHash != hosted.SourceReleaseSealSHA256 {
+		return errors.New("hosted source release seal does not match episode metadata")
+	}
+	sourceEpisodePath := filepath.Join(directory, "source-episode.yaml")
+	sourceEpisodeHash, _, err := fileSHA256(sourceEpisodePath)
+	if err != nil {
+		return err
+	}
+	if sourceEpisodeHash != strings.ToLower(seal.Payload.HandoffFiles["episode.yaml"]) {
+		return errors.New("retained source episode metadata does not match the source release seal")
+	}
+	sourceEpisode, err := loadEpisode(sourceEpisodePath)
+	if err != nil {
+		return err
+	}
+	if sourceEpisode.ID != seal.Payload.Episode.ID || sourceEpisode.Title != seal.Payload.Episode.Title || sourceEpisode.PublishedAt.Format(time.RFC3339) != seal.Payload.Episode.PublishedAt {
+		return errors.New("retained source episode metadata does not match the sealed episode identity")
+	}
+	comparableSource := sourceEpisode
+	comparableSource.Audio = audio{}
+	comparableSource.SourceReleaseSealSHA256 = ""
+	comparableHosted := hosted
+	comparableHosted.Audio = audio{}
+	comparableHosted.SourceReleaseSealSHA256 = ""
+	if len(comparableSource.Chapters) == 0 {
+		comparableSource.Chapters = nil
+	}
+	if len(comparableHosted.Chapters) == 0 {
+		comparableHosted.Chapters = nil
+	}
+	if !reflect.DeepEqual(comparableSource, comparableHosted) {
+		return errors.New("hosted episode metadata differs from the retained sealed source metadata")
+	}
+	showNotesHash, _, err := fileSHA256(filepath.Join(directory, "show-notes.md"))
+	if err != nil {
+		return err
+	}
+	if showNotesHash != strings.ToLower(seal.Payload.HandoffFiles["show-notes.md"]) {
+		return errors.New("hosted show notes do not match the source release seal")
+	}
+	if hosted.Audio.SHA256 != strings.ToLower(seal.Payload.Audio.SHA256) || hosted.Audio.SHA256 != strings.ToLower(seal.Payload.HandoffFiles["audio.mp3"]) || hosted.Audio.Bytes != seal.Payload.Audio.Bytes {
+		return errors.New("hosted audio identity does not match the source release seal")
+	}
+	return nil
+}
+
+func releaseCandidatesCommand(args []string) error {
+	flags := flag.NewFlagSet("release-candidates", flag.ContinueOnError)
+	episodesDir := flags.String("episodes", "episodes", "episodes directory")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	candidates, err := releaseCandidateIDs(*episodesDir)
+	if err != nil {
+		return err
+	}
+	for _, id := range candidates {
+		fmt.Println(id)
+	}
+	return nil
+}
+
+func releaseCandidateIDs(episodesDir string) ([]string, error) {
+	paths, err := filepath.Glob(filepath.Join(episodesDir, "*", "episode.yaml"))
+	if err != nil {
+		return nil, fmt.Errorf("find episode manifests: %w", err)
+	}
+	candidates := make([]string, 0, len(paths))
+	for _, episodePath := range paths {
+		loaded, err := loadEpisode(episodePath)
+		if err != nil {
+			return nil, err
+		}
+		if loaded.SourceReleaseSealSHA256 == "" {
+			continue
+		}
+		if err := validateEpisode(loaded); err != nil {
+			return nil, err
+		}
+		if err := verifyHostedReleaseProvenance(episodePath, loaded); err != nil {
+			return nil, fmt.Errorf("verify release candidate %q: %w", loaded.ID, err)
+		}
+		candidates = append(candidates, loaded.ID)
+	}
+	return candidates, nil
+}
+
+func validateSealedEpisodeProvenance(episodesDir string, episodes []loadedEpisode) error {
+	for _, loaded := range episodes {
+		if loaded.SourceReleaseSealSHA256 == "" {
+			continue
+		}
+		if err := verifyHostedReleaseProvenance(filepath.Join(episodesDir, loaded.ID, "episode.yaml"), loaded.episode); err != nil {
+			return fmt.Errorf("verify sealed episode %q: %w", loaded.ID, err)
+		}
+	}
+	return nil
+}
+
+func releaseRecordCommand(args []string) error {
+	flags := flag.NewFlagSet("release-record", flag.ContinueOnError)
+	episodePath := flags.String("episode", "", "committed hosted episode.yaml")
+	outputPath := flags.String("out", "", "output JSON path")
+	commit := flags.String("commit", "", "source Git commit")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if *episodePath == "" || *outputPath == "" || *commit == "" {
+		return errors.New("--episode, --out, and --commit are required")
+	}
+	loaded, err := loadEpisode(*episodePath)
+	if err != nil {
+		return err
+	}
+	if err := validateEpisode(loaded); err != nil {
+		return err
+	}
+	if err := verifyHostedReleaseProvenance(*episodePath, loaded); err != nil {
+		return err
+	}
+	episodeHash, _, err := fileSHA256(*episodePath)
+	if err != nil {
+		return err
+	}
+	notesHash, _, err := fileSHA256(filepath.Join(filepath.Dir(*episodePath), "show-notes.md"))
+	if err != nil {
+		return err
+	}
+	record := releaseRecord{SchemaVersion: 1, SourceCommit: *commit, EpisodeManifestSHA: episodeHash, ShowNotesSHA: notesHash, Episode: releaseRecordEpisode{ID: loaded.ID, GUID: loaded.GUID, Title: loaded.Title, PublishedAt: loaded.PublishedAt, Duration: loaded.Duration, Season: loaded.Season, Number: loaded.Number, Explicit: loaded.Explicit, Audio: loaded.Audio, Chapters: loaded.Chapters, ChaptersAudioSHA256: loaded.ChaptersAudioSHA256, SourceReleaseSealSHA256: loaded.SourceReleaseSealSHA256}}
+	data, err := json.MarshalIndent(record, "", "  ")
+	if err != nil {
+		return fmt.Errorf("serialize release record: %w", err)
+	}
+	return writeFile(*outputPath, append(data, '\n'))
 }
 
 func publishPlanCommand(args []string) error {

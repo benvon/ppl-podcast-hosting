@@ -7,10 +7,12 @@ if [[ $# -ne 1 ]]; then
 fi
 
 release_dir=$1
-if [[ ! -d "$release_dir" || ! -f "$release_dir/episode.yaml" || ! -f "$release_dir/show-notes.md" || ! -f "$release_dir/audio.mp3" ]]; then
-  echo "release directory must contain episode.yaml, show-notes.md, and audio.mp3" >&2
+if [[ ! -d "$release_dir" || ! -f "$release_dir/episode.yaml" || ! -f "$release_dir/show-notes.md" || ! -f "$release_dir/audio.mp3" || ! -f "$release_dir/source-release-seal.yaml" ]]; then
+  echo "release directory must contain episode.yaml, show-notes.md, audio.mp3, and source-release-seal.yaml" >&2
   exit 64
 fi
+
+mise exec -- go run ./cmd/pplsite verify-handoff --source "$release_dir" --audio "$release_dir/audio.mp3"
 
 : "${R2_ENDPOINT:?set R2_ENDPOINT to https://<account-id>.r2.cloudflarestorage.com}"
 : "${PPL_R2_STAGING_BUCKET:?set PPL_R2_STAGING_BUCKET}"
