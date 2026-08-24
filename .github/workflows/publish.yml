@@ -106,16 +106,23 @@ jobs:
       - id: discover
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
           ids=()
           while IFS= read -r candidate; do
             [[ -z "$candidate" ]] && continue
-            if gh release view "episode-${candidate}" >/dev/null 2>&1; then
-              continue
-            fi
-            ids+=("$candidate")
+            state=$(bash scripts/release-state.sh "episode-${candidate}" "${candidate}.json")
+            case "$state" in
+              complete) continue ;;
+              missing|draft) ids+=("$candidate") ;;
+              published-missing-asset)
+                echo "Published GitHub Release episode-${candidate} lacks ${candidate}.json; refusing to overwrite an immutable release." >&2
+                exit 1
+                ;;
+              *) echo "Unknown release state for episode-${candidate}: ${state}" >&2; exit 1 ;;
+            esac
           done < <(go run ./cmd/pplsite release-candidates --episodes episodes)
           printf '%s\n' "${ids[@]:-}" | jq -Rsc 'split("\n") | map(select(length > 0))' | { read -r episodes; echo "episodes=$episodes" >> "$GITHUB_OUTPUT"; }
 
@@ -153,16 +160,30 @@ jobs:
       - name: Create GitHub release record
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           EPISODE: ${{ matrix.episode }}
           PUBLISHED_COMMIT: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           tag="episode-${EPISODE}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "GitHub release record already exists for ${tag}; leaving it immutable."
-            exit 0
-          fi
+          state=$(bash scripts/release-state.sh "$tag" "${EPISODE}.json")
+          case "$state" in
+            complete)
+              echo "GitHub release record already exists for ${tag}; leaving it immutable."
+              exit 0
+              ;;
+            draft)
+              echo "Removing incomplete draft ${tag} before retrying its release record."
+              gh release delete "$tag" --yes --cleanup-tag
+              ;;
+            missing) ;;
+            published-missing-asset)
+              echo "Published GitHub Release ${tag} lacks ${EPISODE}.json; refusing to overwrite an immutable release." >&2
+              exit 1
+              ;;
+            *) echo "Unknown release state for ${tag}: ${state}" >&2; exit 1 ;;
+          esac
           gh release create "$tag" "release-records/${EPISODE}.json" \
             --target "$PUBLISHED_COMMIT" \
             --title "Published ${EPISODE}" \

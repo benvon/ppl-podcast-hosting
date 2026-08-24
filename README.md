@@ -40,6 +40,12 @@ source-handoff-seal hashes. This state-based discovery recovers an episode if a
 previous pending run was superseded. It is forward-only: older episodes without
 the sealed-package marker are not retroactively released or attested.
 
+A release is considered complete only when it is published and contains its
+episode publication-record JSON asset. If GitHub leaves a draft after a
+transient asset-upload or publish failure, the next successful publish removes
+that draft and retries it. A published release missing its record fails closed
+instead of silently claiming the episode is attested.
+
 ## Local release directory
 
 ```text
