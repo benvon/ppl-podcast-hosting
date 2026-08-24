@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 4 ]]; then
-  echo "usage: publish-release.sh RELEASE_TAG RECORD_FILE EPISODE_ID PUBLISHED_COMMIT" >&2
+if [[ $# -ne 5 ]]; then
+  echo "usage: publish-release.sh RELEASE_KEY CONTENT_VERSION RECORD_FILE EPISODE_ID PUBLISHED_COMMIT" >&2
   exit 64
 fi
 
-tag=$1
-record_file=$2
-episode_id=$3
-published_commit=$4
+release_key=$1
+content_version=$2
+record_file=$3
+episode_id=$4
+published_commit=$5
 gh_bin=${GH_BIN:-gh}
 repo=${GH_REPO:-${GITHUB_REPOSITORY:-}}
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-asset=$(basename -- "$record_file")
+tag="${release_key}/v${content_version}"
+asset="${release_key}-v${content_version}.json"
 
 if [[ -z "$repo" ]]; then
   echo "GH_REPO or GITHUB_REPOSITORY is required" >&2
@@ -23,15 +25,19 @@ if [[ ! "$published_commit" =~ ^[a-f0-9]{40}$ ]]; then
   echo "published commit must be a full Git commit SHA" >&2
   exit 64
 fi
-if ! jq -e --arg episode "$episode_id" --arg commit "$published_commit" \
-  '.schema_version == 1 and .episode.id == $episode and .source_commit == $commit' \
+if [[ "$(basename -- "$record_file")" != "$asset" ]]; then
+  echo "publication record filename must be ${asset}" >&2
+  exit 64
+fi
+if ! jq -e --arg episode "$episode_id" --arg key "$release_key" --arg version "$content_version" --arg tag "$tag" --arg commit "$published_commit" \
+  '.schema_version == 1 and .episode.id == $episode and .episode.release_key == $key and .episode.content_version == $version and .release_tag == $tag and .source_commit == $commit' \
   "$record_file" >/dev/null; then
   echo "publication record does not identify the requested episode and commit" >&2
   exit 64
 fi
 
 release_state() {
-  GH_BIN="$gh_bin" GH_REPO="$repo" bash "$script_dir/release-state.sh" "$tag" "$asset" "$episode_id" "$record_file"
+  GH_BIN="$gh_bin" GH_REPO="$repo" bash "$script_dir/release-state.sh" "$release_key" "$content_version" "$episode_id" "$record_file"
 }
 
 delete_tag_if_present() {
@@ -79,8 +85,8 @@ esac
 
 "$gh_bin" release create "$tag" "$record_file" \
   --target "$published_commit" \
-  --title "Published ${episode_id}" \
-  --notes "Machine-readable publication record for ${episode_id}. Its SHA-256 is independently attested by GitHub Actions."
+  --title "Published ${release_key} v${content_version}" \
+  --notes "Machine-readable publication record for ${release_key} v${content_version}. Its SHA-256 is independently attested by GitHub Actions."
 
 state=$(release_state)
 if [[ "$state" != "complete" ]]; then

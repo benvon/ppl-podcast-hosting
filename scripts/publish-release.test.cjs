@@ -8,15 +8,19 @@ const path = require("node:path");
 const test = require("node:test");
 
 const commit = "0123456789abcdef0123456789abcdef01234567";
+const releaseKey = "episode-07";
+const contentVersion = "0.1.4";
+const tag = `${releaseKey}/v${contentVersion}`;
+const asset = `${releaseKey}-v${contentVersion}.json`;
 
 test("release publisher removes an orphan tag and verifies the recreated release", () => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "ppl-publish-release-test-"));
   const fakeGh = path.join(temporary, "gh");
   const stateFile = path.join(temporary, "state");
   const logFile = path.join(temporary, "calls");
-  const record = path.join(temporary, "core-07.json");
+  const record = path.join(temporary, asset);
   fs.writeFileSync(stateFile, "orphan\n");
-  fs.writeFileSync(record, `${JSON.stringify({ schema_version: 1, source_commit: commit, episode: { id: "core-07" } })}\n`);
+  fs.writeFileSync(record, `${JSON.stringify({ schema_version: 1, source_commit: commit, release_tag: tag, episode: { id: "core-07", release_key: releaseKey, content_version: contentVersion } })}\n`);
   fs.writeFileSync(fakeGh, `#!/usr/bin/env bash
 set -euo pipefail
 printf '%s\\n' "$*" >>"$CALL_LOG"
@@ -30,7 +34,7 @@ elif [[ "$1" == "api" ]]; then
   case "$endpoint" in
     repos/*/releases/tags/*)
       if [[ "$state" != "complete" ]]; then echo "gh: Not Found (HTTP 404)" >&2; exit 1; fi
-      echo '{"draft":false,"prerelease":false,"tag_name":"episode-core-07","assets":[{"name":"core-07.json","id":1}]}'
+      echo '{"draft":false,"prerelease":false,"tag_name":"episode-07/v0.1.4","assets":[{"name":"episode-07-v0.1.4.json","id":1}]}'
       ;;
     repos/*/git/ref/tags/*|repos/*/git/refs/tags/*)
       if [[ "$method" == "DELETE" ]]; then printf 'missing\\n' >"$STATE_FILE"; exit 0; fi
@@ -51,7 +55,8 @@ fi
   try {
     const result = childProcess.spawnSync("bash", [
       path.join(__dirname, "publish-release.sh"),
-      "episode-core-07",
+      releaseKey,
+      contentVersion,
       record,
       "core-07",
       commit,
@@ -70,8 +75,8 @@ fi
     assert.match(result.stdout, /Removing incomplete release tag/);
     assert.match(result.stdout, /Verified immutable GitHub release record/);
     const calls = fs.readFileSync(logFile, "utf8");
-    assert.match(calls, /--method DELETE repos\/benvon\/ppl-postcast-hosting\/git\/refs\/tags\/episode-core-07/);
-    assert.match(calls, /release create episode-core-07/);
+    assert.match(calls, /--method DELETE repos\/benvon\/ppl-postcast-hosting\/git\/refs\/tags\/episode-07\/v0.1.4/);
+    assert.match(calls, /release create episode-07\/v0.1.4/);
     assert.ok(calls.indexOf("--method DELETE") < calls.indexOf("release create"), calls);
   } finally {
     fs.rmSync(temporary, { recursive: true, force: true });

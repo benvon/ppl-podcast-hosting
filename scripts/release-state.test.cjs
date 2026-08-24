@@ -8,12 +8,16 @@ const path = require("node:path");
 const test = require("node:test");
 
 const commit = "0123456789abcdef0123456789abcdef01234567";
+const releaseKey = "episode-07";
+const contentVersion = "0.1.4";
+const tag = `${releaseKey}/v${contentVersion}`;
+const asset = `${releaseKey}-v${contentVersion}.json`;
 
 test("release state closes only when the tag, episode, commit, and record agree", () => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "ppl-release-state-test-"));
   const fakeGh = path.join(temporary, "gh");
-  const expectedRecord = path.join(temporary, "core-07.json");
-  fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, episode: { id: "core-07" } })}\n`);
+  const expectedRecord = path.join(temporary, asset);
+  fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, release_tag: tag, episode: { id: "core-07", release_key: releaseKey, content_version: contentVersion } })}\n`);
   fs.writeFileSync(fakeGh, `#!/usr/bin/env bash
 set -euo pipefail
 endpoint="\${!#}"
@@ -27,10 +31,10 @@ case "$endpoint" in
     case "\${RELEASE_STATE}" in
       missing|orphan-tag) echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
       unavailable) echo "gh: service unavailable (HTTP 502)" >&2; exit 1 ;;
-      draft) echo '{"draft":true,"prerelease":false,"tag_name":"episode-core-07","assets":[]}' ;;
-      published-missing-asset) echo '{"draft":false,"prerelease":false,"tag_name":"episode-core-07","assets":[]}' ;;
-      prerelease) echo '{"draft":false,"prerelease":true,"tag_name":"episode-core-07","assets":[{"name":"core-07.json","id":1}]}' ;;
-      *) echo '{"draft":false,"prerelease":false,"tag_name":"episode-core-07","assets":[{"name":"core-07.json","id":1}]}' ;;
+      draft) echo '{"draft":true,"prerelease":false,"tag_name":"episode-07/v0.1.4","assets":[]}' ;;
+      published-missing-asset) echo '{"draft":false,"prerelease":false,"tag_name":"episode-07/v0.1.4","assets":[]}' ;;
+      prerelease) echo '{"draft":false,"prerelease":true,"tag_name":"episode-07/v0.1.4","assets":[{"name":"episode-07-v0.1.4.json","id":1}]}' ;;
+      *) echo '{"draft":false,"prerelease":false,"tag_name":"episode-07/v0.1.4","assets":[{"name":"episode-07-v0.1.4.json","id":1}]}' ;;
     esac
     ;;
   repos/*/git/ref/tags/*)
@@ -42,7 +46,7 @@ case "$endpoint" in
     record_episode="core-07"
     [[ "\${RELEASE_STATE}" == "invalid-record" ]] && record_commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     [[ "\${RELEASE_STATE}" == "wrong-episode" ]] && record_episode="core-08"
-    printf '{"schema_version":1,"source_commit":"%s","episode":{"id":"%s"}}\\n' "$record_commit" "$record_episode"
+    printf '{"schema_version":1,"source_commit":"%s","release_tag":"episode-07/v0.1.4","episode":{"id":"%s","release_key":"episode-07","content_version":"0.1.4"}}\\n' "$record_commit" "$record_episode"
     ;;
   *) exit 91 ;;
 esac
@@ -50,8 +54,8 @@ esac
   try {
     const state = (fixture, includeExpectedRecord = false) => childProcess.spawnSync("bash", [
       path.join(__dirname, "release-state.sh"),
-      "episode-core-07",
-      "core-07.json",
+      releaseKey,
+      contentVersion,
       "core-07",
       ...(includeExpectedRecord ? [expectedRecord] : []),
     ], {
@@ -80,7 +84,7 @@ esac
     expectState("wrong-episode", "published-invalid");
     expectState("unattested", "published-invalid");
 
-    fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, episode: { id: "core-07", changed: true } })}\n`);
+    fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, release_tag: tag, episode: { id: "core-07", release_key: releaseKey, content_version: contentVersion, changed: true } })}\n`);
     expectState("complete", "published-record-mismatch", true);
 
     const unavailable = state("unavailable");
