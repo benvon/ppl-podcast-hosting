@@ -1,0 +1,43 @@
+id: core-08
+guid: pplstudyguide.com:core-08
+title: Aircraft Documents, Airworthiness, Inspections, and Maintenance
+description: A practical study of aircraft documents, airworthiness,
+  inspections, maintenance records, and inoperative equipment decisions.
+published_at: 2026-08-25T17:53:14Z
+duration: 00:33:16
+season: 1
+number: 8
+explicit: false
+audio: {}
+release_key: episode-08
+content_version: 0.2.1
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 22850
+  - title: Podcast introduction
+    start_ms: 61850
+  - title: What the ACS is asking you to connect
+    start_ms: 95700
+  - title: What airworthy means
+    start_ms: 209510
+  - title: Documents in the airplane
+    start_ms: 411860
+  - title: Inspection due dates
+    start_ms: 627140
+  - title: What the maintenance records show
+    start_ms: 834640
+  - title: An inoperative item
+    start_ms: 999800
+  - title: Preventive maintenance by a pilot
+    start_ms: 1343510
+  - title: After maintenance
+    start_ms: 1483970
+  - title: The borrowed-airplane decision
+    start_ms: 1618780
+  - title: Review
+    start_ms: 1805580
+  - title: Outro
+    start_ms: 1956440
+chapters_audio_sha256: b9d48ca766f271f7adeb41c3c35d45931a58638bac35f4fa822fa2e6e4f01333
