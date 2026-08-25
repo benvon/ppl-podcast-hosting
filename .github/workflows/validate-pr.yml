@@ -1,0 +1,32 @@
+name: Validate pull request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.5'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Run publisher tests
+        run: go test ./... && node --test scripts/*.test.cjs
+
+      - name: Validate sealed episode packages
+        run: go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes
+
+      - name: Build static podcast site
+        run: go run ./cmd/pplsite build --config config/show.yaml --episodes episodes --out dist
