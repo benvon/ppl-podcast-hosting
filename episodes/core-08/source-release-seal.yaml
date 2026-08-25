@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-08-25T18:06:04.793Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-08
+    title: Aircraft Documents, Airworthiness, Inspections, and Maintenance
+    version: 0.2.1
+    published_at: 2026-08-25T17:53:14Z
+  source_package_files:
+    audio-manifest.yaml: cc3defcd2ec420802a4a4bb164dd6ef012d0bc8cee10640d9d9c699ccb3647cf
+    claim-inventory.yaml: aea677766f642845fa0032359e915058e31bf9b97c215ba0b974bd876864fa00
+    episode.yaml: f98c09a0e1cfa0e768f5d758d27294019edd218cdbeee89bc30522969bf5a6ba
+    hosting-metadata.yaml: 387e4619ffe3ee52a915e08954aa84049ac72a3a06f72e06dfc10148376225dc
+    link-validation.yaml: faabbba99eec6d4e143c1ee6726b1c40e4955340a144bf5bb70ddcfb3f28c2e3
+    master-script.md: cdd7da6c20ed45d8f17448ef56a89f04c2e170f5fa70b3655dbcc5a51f0bb112
+    narration.md: 036b2fde7c721085287e4d2b329ada3c3891359aba43250992b65f13e8467ed3
+    production-log.md: 34070405772416a7c0888a454b855a18387389c920c768b5fcfda7d13c55bdb4
+    qa-checklist.md: 28b18db7198c3ea7d1ddbfe4560ce047dbd3834e0490062e2e303c39d969d806
+    research-packet.md: b845174f60d58a0546406c39bf7c677b2ae66c882716186036df0d0a5b198e1b
+    show-notes-manifest.yaml: 39f3ff77121c81476c0cf4ccf86d6a487f088ceade16d25c97dee4bbafe1e9bd
+    show-notes.md: 8256cb9306082158f612bbf33470f08a7642ae336e8b1a7065844d7375a595f5
+    sources.yaml: 67b56fb7671bb2a115a248cb4364b43a69d01beff3d28ca30433f2eea78e6540
+  handoff_files:
+    episode.yaml: 2f3f80acdfb6b0423691951e68c27ff43e05fba301ba729eab541b2d3227f143
+    show-notes.md: 8256cb9306082158f612bbf33470f08a7642ae336e8b1a7065844d7375a595f5
+    audio.mp3: b9d48ca766f271f7adeb41c3c35d45931a58638bac35f4fa822fa2e6e4f01333
+  audio:
+    sha256: b9d48ca766f271f7adeb41c3c35d45931a58638bac35f4fa822fa2e6e4f01333
+    bytes: 39931234
+payload_sha256: 0abe908b42475344f484df985cf0e83e69011e78dca5ae297699efac1145a418
