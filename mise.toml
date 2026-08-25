@@ -1,5 +1,5 @@
 [tools]
-go = "1.26.5"
+go = "1.26.6"
 
 [tasks.validate]
 description = "Validate show configuration and every committed episode"
