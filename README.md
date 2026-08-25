@@ -161,15 +161,17 @@ Use separate R2 credentials:
 | GitHub publishing credential | Read staging; read/write public-media bucket | GitHub Actions secrets |
 | Pages deployment token | Cloudflare Pages edit for this project only | GitHub Actions secret |
 
-The Cloudflare bootstrap state and the exact secret names are recorded in
-[`docs/runbooks/cloudflare-bootstrap.md`](docs/runbooks/cloudflare-bootstrap.md).
+See [`docs/runbooks/cloudflare-bootstrap.md`](docs/runbooks/cloudflare-bootstrap.md)
+for the public-safe deployment setup guide. Keep real infrastructure identifiers
+and credential values in the appropriate secret manager or GitHub configuration,
+not in this repository.
 
 The generic show cover is committed as `pplsg-cover.png`, deployed to
 `https://pplstudyguide.com/pplsg-cover.png`, and referenced in the homepage and
 RSS feed. The build verifies that a configured local cover is a square PNG or
 JPEG between 1400 and 3000 pixels and rejects PNGs with an alpha channel.
-Before the first release, set a real
-`owner_name` and `owner_email` in `config/show.yaml`.
+The configured `owner_name` and `owner_email` are published in the RSS feed.
+Choose the public identity and contact address deliberately.
 
 Required GitHub Actions secrets are documented in
 `.github/workflows/publish.yml`. Secrets are never committed to this repository.
