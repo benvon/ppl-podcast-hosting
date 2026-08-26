@@ -1,0 +1,50 @@
+id: core-09
+guid: pplstudyguide.com:core-09
+title: Weight, Balance, and Center of Gravity
+description: Connect the actual airplane, occupants, baggage, cargo, and fuel to
+  total weight, center of gravity, aircraft handling, all-phase limit checks,
+  and practical performance planning.
+published_at: 2026-08-26T20:04:52Z
+duration: 00:32:43
+season: 1
+number: 9
+explicit: false
+audio: {}
+release_key: episode-09
+content_version: 0.1.4
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 20000
+  - title: Podcast introduction
+    start_ms: 57850
+  - title: What the ACS is asking you to connect
+    start_ms: 92350
+  - title: Two questions, not one
+    start_ms: 217310
+  - title: Build the lever mental model
+    start_ms: 322720
+  - title: Start with the airplane that actually exists
+    start_ms: 493150
+  - title: Turn the loading into a calculation
+    start_ms: 652060
+  - title: The method may look different in your POH
+    start_ms: 862310
+  - title: What forward and aft CG change
+    start_ms: 988070
+  - title: Weight is also a performance input
+    start_ms: 1147230
+  - title: Check the whole flight, not one snapshot
+    start_ms: 1286440
+  - title: Correct the loading, then run the plan again
+    start_ms: 1415450
+  - title: Loading is also a restraint problem
+    start_ms: 1563360
+  - title: A complete planning pass
+    start_ms: 1637370
+  - title: Review
+    start_ms: 1787950
+  - title: Outro
+    start_ms: 1920390
+chapters_audio_sha256: a97a490f3a39467fb18b5240c7ee8f00982eea4c76446c020a9bee2488ede1b3
