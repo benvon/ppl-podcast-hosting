@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-08-26T20:13:00.707Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-09
+    title: Weight, Balance, and Center of Gravity
+    version: 0.1.4
+    published_at: 2026-08-26T20:04:52Z
+  source_package_files:
+    audio-manifest.yaml: 0be9b58494c11961a2d9c71ff2fa622a287446b6f1d806aae67c90b5e9382c31
+    claim-inventory.yaml: 893181a485e9c636e163ab3601b3675c8fb0dd5829559461a68b2d244d5163b7
+    episode.yaml: 9cbde5780e364b246083e70e9e8a59ce5cae317d4c4e41aa818d213d8ada71b5
+    hosting-metadata.yaml: bd02f2fb2215c815980743edc7e6f41bfa8b2e144e07888c3f0a74364ddf2a00
+    link-validation.yaml: 1c31b45ce48fc694550556a862a00d25c17804ea73ac2750ff0d7420b266c6fa
+    master-script.md: a23d3b272e3596599a41446eefef3ac0a9331af721d63e4a86506755034ec62a
+    narration.md: cafb76f48f9546f366dc96a35b75bd21bac6c028e8e50acf316a3a2976fdfe2f
+    production-log.md: 143ade098884bdc69a4ef5b65a03160477c4284fd896fd8cbd72d827b76e4dcc
+    qa-checklist.md: d1bb45b27946d555de72084bb00ff92998703f38255304f5979e59f23637c803
+    research-packet.md: 99b5ada745540c4d359079ece6bf1e85b93b65ef7373054f9a08e4b9e7a5cf18
+    show-notes-manifest.yaml: 24df7a0596a7f1a34781b7666984270add9232d56f5219766947ff5775f5ca52
+    show-notes.md: d85e51a42bfad744ae6de44fce7ed7f9f521c9807b742654edf27e45f4dca61e
+    sources.yaml: 3e2fec6ac2de7dbdc67f42586494820ff95453c86e336e07a100f0d7eb6322c7
+  handoff_files:
+    episode.yaml: 13cd4f5f7457a37b4152fcd9e5fc54965877a28e915314bc92e5eebc118ea10b
+    show-notes.md: d85e51a42bfad744ae6de44fce7ed7f9f521c9807b742654edf27e45f4dca61e
+    audio.mp3: a97a490f3a39467fb18b5240c7ee8f00982eea4c76446c020a9bee2488ede1b3
+  audio:
+    sha256: a97a490f3a39467fb18b5240c7ee8f00982eea4c76446c020a9bee2488ede1b3
+    bytes: 39256678
+payload_sha256: 34499ce1a24acfec5279e6607b40aa4765cf64d4c3df7f3c955c4a3c4eae4704
