@@ -1,0 +1,52 @@
+id: core-10
+guid: pplstudyguide.com:core-10
+title: Aircraft Performance and Density Altitude
+description: Connect pressure altitude, temperature, air density, loading, wind,
+  and runway conditions to aircraft-specific takeoff, climb, cruise, and landing
+  performance planning.
+published_at: 2026-08-28T16:00:53Z
+duration: 00:38:23
+season: 1
+number: 10
+explicit: false
+audio: {}
+release_key: episode-10
+content_version: 0.1.5
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 23250
+  - title: Podcast introduction
+    start_ms: 61000
+  - title: What the ACS is asking you to connect
+    start_ms: 95750
+  - title: Performance starts with the actual airplane
+    start_ms: 286870
+  - title: Density altitude is a performance altitude
+    start_ms: 406680
+  - title: Pressure altitude comes first
+    start_ms: 521130
+  - title: Temperature and moisture change density
+    start_ms: 622340
+  - title: Why thinner air changes takeoff and climb
+    start_ms: 754240
+  - title: Read the chart before reading the number
+    start_ms: 1006110
+  - title: Build the takeoff picture
+    start_ms: 1163290
+  - title: Climb is distance and time
+    start_ms: 1403760
+  - title: Plan cruise and the climb to it
+    start_ms: 1560460
+  - title: Plan landing as its own operation
+    start_ms: 1684190
+  - title: Calculated performance is a disciplined estimate
+    start_ms: 1855350
+  - title: A repeatable planning flow
+    start_ms: 2007910
+  - title: Retrieval review
+    start_ms: 2152890
+  - title: Outro
+    start_ms: 2257550
+chapters_audio_sha256: 581ca6a6c36c70f3e33854bb28d65f97dd202176e4cb109e406bcf0f26b38fdc

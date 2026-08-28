@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-08-28T17:02:51.446Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-10
+    title: Aircraft Performance and Density Altitude
+    version: 0.1.5
+    published_at: 2026-08-28T16:00:53Z
+  source_package_files:
+    audio-manifest.yaml: c2d48ddb0f512b398ec864e39046934ef6a6d23d9fb0e3da4b7fae5e1dc206f2
+    claim-inventory.yaml: 213efece24e43a5c8c4f8f885eda488383d57dab6f5037d114aa256acaae6065
+    episode.yaml: 8d8ed9d3c0b2ac22db7fb4f7cf4fd09a9ac25d1afb8cf4cde6fc206f01755fb6
+    hosting-metadata.yaml: 9c4af3213d01ae9719eb43b525e15794607f080d413b841776421327d70d13a0
+    link-validation.yaml: bcd2ed9819c9568174bf340dcfe42e2d63f5ac26b52e9eda6c33d9a28eb10046
+    master-script.md: 53b4c6d68e54b5075e1aa543b25754e5a87e207abaa6cf0f8321caedb536dc11
+    narration.md: 273a7b8080c225a45708ba81b68e6ff0448a8ae10600d78746c53ada11c3bc48
+    production-log.md: ad55f6de5af9215109bfed28d47c0d91f289d18ff72f862e48644947d6ad0a74
+    qa-checklist.md: d1da8c6e17e8bfcbbb70d4f112be27b02b27456fb41e37184006dee665c0047a
+    research-packet.md: 7cb91982beef5f1cf002706f55faa6c44bd9e58b5cb81e004e48d94a6aa020a5
+    show-notes-manifest.yaml: f1ec106576282f0c0021b2e0b5660fcc6de016a6e495edc820e691160b7d92a7
+    show-notes.md: d2c858694a6eddd2c198cac2531a4d7f07b0121901f8147d561b782db965ab86
+    sources.yaml: bf775c58b165e3db9975ffb2e8e964771f63979060b49b845645ffd1bf36fc34
+  handoff_files:
+    episode.yaml: 77492d27428ee3e2bf05d59aa257913fbcccdf233a5d70e071f058afe74d966e
+    show-notes.md: d2c858694a6eddd2c198cac2531a4d7f07b0121901f8147d561b782db965ab86
+    audio.mp3: 581ca6a6c36c70f3e33854bb28d65f97dd202176e4cb109e406bcf0f26b38fdc
+  audio:
+    sha256: 581ca6a6c36c70f3e33854bb28d65f97dd202176e4cb109e406bcf0f26b38fdc
+    bytes: 46070862
+payload_sha256: f35edb488499bdc273be38baf1f9c696db1a8cf4d4b3904af87bb42e2f547fd3
