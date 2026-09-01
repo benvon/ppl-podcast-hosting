@@ -1,0 +1,56 @@
+id: core-11
+release_key: episode-11
+content_version: 0.2.12
+guid: pplstudyguide.com:core-11
+title: 'Weather Theory: Pressure, Stability, Moisture, and Clouds'
+description: Build the physical chain from pressure, temperature, and density through stability, moisture, saturation, and cloud formation, then connect it to later VFR weather interpretation.
+published_at: 2026-09-01T16:14:05Z
+duration: "00:42:43"
+season: 1
+number: 11
+explicit: false
+audio:
+    staging_key: staging/core-11/1492c81737cfee19f97898a136259adce1637b64ca1d7ae2c0fafd3696962691.mp3
+    public_key: audio/core-11-1492c81737cfee19.mp3
+    sha256: 1492c81737cfee19f97898a136259adce1637b64ca1d7ae2c0fafd3696962691
+    bytes: 51264919
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 28150
+    - title: Podcast introduction
+      start_ms: 65100
+    - title: What the ACS is asking you to connect
+      start_ms: 101000
+    - title: The map for this lesson
+      start_ms: 254660
+    - title: The atmosphere is the working material
+      start_ms: 367600
+    - title: Pressure and its reference systems
+      start_ms: 540380
+    - title: How pressure references appear in flight information
+      start_ms: 689090
+    - title: Heating changes density and starts motion
+      start_ms: 897200
+    - title: Rising air, stability, and convection
+      start_ms: 1062130
+    - title: Moisture becomes visible at saturation
+      start_ms: 1348300
+    - title: Four paths to saturation
+      start_ms: 1543380
+    - title: Clouds make the chain visible
+      start_ms: 1685890
+    - title: What cloud structure can tell you
+      start_ms: 1811400
+    - title: From theory to Episode 12
+      start_ms: 1947380
+    - title: Two mornings, two outcomes
+      start_ms: 2132260
+    - title: Retrieval review
+      start_ms: 2286420
+    - title: Outro
+      start_ms: 2520190
+chapters_audio_sha256: 1492c81737cfee19f97898a136259adce1637b64ca1d7ae2c0fafd3696962691
+source_release_seal_sha256: 5af705cb6802338b9eac915c6cd76d85ddc4fa5f0c43298c3dbd2267e349d69d

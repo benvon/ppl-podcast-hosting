@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-01T16:23:14.020Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-11
+    title: "Weather Theory: Pressure, Stability, Moisture, and Clouds"
+    version: 0.2.12
+    published_at: 2026-09-01T16:14:05Z
+  source_package_files:
+    audio-manifest.yaml: bb8dc80d177e227da12d7c9c92a4d7230ec55c05ff9b6b6e8412aa9eb2119c04
+    claim-inventory.yaml: 609a19d1874dab8f2e6e368a2201f44b8877203b3a731ed299080a293da7b85b
+    episode.yaml: 6c8daf77b6aae7f126bfa850e2230b850b3e5f8e9d5ac24563473560aa4bc01d
+    hosting-metadata.yaml: ffa76c8ec70dd51ab5ebb4396760716620da99c03529167bc0d123425475ff1a
+    link-validation.yaml: aafea981f557e2c394277c6e8bc1e0c32241c9f2c930203f5e8cc2bd5ec6e693
+    master-script.md: de210781b180d0190408ba67479ea1de5556cba27638fa5904ea75b3a061f619
+    narration.md: b72c97f06ff91e0ab59addec9a0379770949cf0c37b46d64fa2242555a275f5f
+    production-log.md: 74e541ba32a1743b908f79b83a7207c22e846dccfb35c7848ab4fd6c208eadbf
+    qa-checklist.md: 28b56bc68a60c54509c39a81b60ceb0523b069c21f9f4894aaf9c9cb76cba71f
+    research-packet.md: b2590e95e5d1ad8eb6220b0e6949bfb2db8b9500032f2ff3dee8fad2b73a749f
+    show-notes-manifest.yaml: 77dcc458e617085d1d6737de1aaac8fcfe5e2d22eb8615081baf2a5811b0fc4e
+    show-notes.md: ec1810a69184e638471d1e8bbb3403372da7dd69d931a1bbdbcc4254d8612f91
+    sources.yaml: bf4b0727a9b21d21f0dd03bcd8f7827e6cdf0d57bcb6ca7c3c459345b4cc1517
+  handoff_files:
+    episode.yaml: fbc527f2e2f3626020d467fa4b428cebbf6cffbe29a408fd667645590dd3a4e3
+    show-notes.md: ec1810a69184e638471d1e8bbb3403372da7dd69d931a1bbdbcc4254d8612f91
+    audio.mp3: 1492c81737cfee19f97898a136259adce1637b64ca1d7ae2c0fafd3696962691
+  audio:
+    sha256: 1492c81737cfee19f97898a136259adce1637b64ca1d7ae2c0fafd3696962691
+    bytes: 51264919
+payload_sha256: b97791d9e34ddfcaee6e07e965869c3187883b024b8ffdca53410215d88f3f74
