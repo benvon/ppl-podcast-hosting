@@ -21,6 +21,16 @@ if [[ -z "$repo" ]]; then
   echo "GH_REPO or GITHUB_REPOSITORY is required" >&2
   exit 64
 fi
+legacy_repo=${GH_LEGACY_REPO:-}
+repo_pattern='^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$'
+# A repository rename changes the immutable SourceRepositoryURI in existing
+# attestations. Only a configured, same-owner former repository may be trusted.
+if [[ -n "$legacy_repo" ]]; then
+  if [[ ! "$legacy_repo" =~ $repo_pattern || "${legacy_repo%%/*}" != "${repo%%/*}" || "$legacy_repo" == "$repo" ]]; then
+    echo "GH_LEGACY_REPO must name a different repository owned by ${repo%%/*}" >&2
+    exit 64
+  fi
+fi
 
 semver_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.((0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
 if [[ ! "$release_key" =~ ^((episode|supplement)-[0-9]{2}|rough-spot-[0-9]{3})$ || ! "$content_version" =~ $semver_pattern || ! "$episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
@@ -129,11 +139,16 @@ if ! jq -e --arg episode "$episode_id" --arg key "$release_key" --arg version "$
   echo "published-invalid"
   exit 0
 fi
-if ! "$gh_bin" attestation verify "$record_file" \
-  --repo "$repo" \
-  --signer-workflow "${repo}/.github/workflows/publish.yml" \
-  --source-ref "refs/heads/main" \
-  --source-digest "$resolved_commit" >/dev/null 2>&1; then
+verify_attestation() {
+  local attestation_repo=$1
+  "$gh_bin" attestation verify "$record_file" \
+    --repo "$attestation_repo" \
+    --signer-workflow "${attestation_repo}/.github/workflows/publish.yml" \
+    --source-ref "refs/heads/main" \
+    --source-digest "$resolved_commit" >/dev/null 2>&1
+}
+
+if ! verify_attestation "$repo" && { [[ -z "$legacy_repo" ]] || ! verify_attestation "$legacy_repo"; }; then
   echo "published-invalid"
   exit 0
 fi

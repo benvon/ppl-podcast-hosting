@@ -22,6 +22,10 @@ test("release state closes only when the tag, episode, commit, and record agree"
 set -euo pipefail
 endpoint="\${!#}"
 if [[ "$1 $2" == "attestation verify" ]]; then
+  if [[ "\${RELEASE_STATE}" == "legacy-attestation" ]]; then
+    [[ " $* " == *" --repo benvon/ppl-postcast-hosting "* ]] && exit 0
+    exit 1
+  fi
   if [[ "\${RELEASE_STATE}" == "unattested" ]]; then exit 1; fi
   exit 0
 fi
@@ -52,7 +56,7 @@ case "$endpoint" in
 esac
 `, { mode: 0o755 });
   try {
-    const state = (fixture, includeExpectedRecord = false) => childProcess.spawnSync("bash", [
+    const state = (fixture, includeExpectedRecord = false, legacyRepo = "") => childProcess.spawnSync("bash", [
       path.join(__dirname, "release-state.sh"),
       releaseKey,
       contentVersion,
@@ -64,6 +68,7 @@ esac
         ...process.env,
         GH_BIN: fakeGh,
         GH_REPO: "benvon/ppl-podcast-hosting",
+        ...(legacyRepo ? { GH_LEGACY_REPO: legacyRepo } : {}),
         RELEASE_STATE: fixture,
         TAG_COMMIT: commit,
       },
@@ -83,6 +88,10 @@ esac
     expectState("invalid-record", "published-invalid");
     expectState("wrong-episode", "published-invalid");
     expectState("unattested", "published-invalid");
+    expectState("legacy-attestation", "published-invalid");
+    const legacyAttestation = state("legacy-attestation", false, "benvon/ppl-postcast-hosting");
+    assert.equal(legacyAttestation.status, 0, legacyAttestation.stderr);
+    assert.equal(legacyAttestation.stdout.trim(), "complete", legacyAttestation.stderr);
 
     const malformedVersion = childProcess.spawnSync("bash", [
       path.join(__dirname, "release-state.sh"),
@@ -91,6 +100,10 @@ esac
       "core-07",
     ], { encoding: "utf8", env: { ...process.env, GH_BIN: fakeGh, GH_REPO: "benvon/ppl-podcast-hosting" } });
     assert.equal(malformedVersion.status, 64, malformedVersion.stderr);
+
+    const invalidLegacyRepo = state("complete", false, "other-owner/ppl-postcast-hosting");
+    assert.equal(invalidLegacyRepo.status, 64, invalidLegacyRepo.stderr);
+    assert.match(invalidLegacyRepo.stderr, /GH_LEGACY_REPO must name a different repository owned by benvon/);
 
     fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, release_tag: tag, episode: { id: "core-07", release_key: releaseKey, content_version: contentVersion, changed: true } })}\n`);
     expectState("complete", "published-record-mismatch", true);
