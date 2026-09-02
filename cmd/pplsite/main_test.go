@@ -309,7 +309,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") {
+	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") || !strings.Contains(string(homepage), "<source srcset=\"https://pplstudyguide.com/cover.webp\" type=\"image/webp\">") || !strings.Contains(string(homepage), "width=\"3000\" height=\"3000\" fetchpriority=\"high\"") || !strings.Contains(string(homepage), "<main>") {
 		t.Fatalf("homepage does not link to the open source production materials")
 	}
 	archive, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "index.html"))
@@ -444,7 +444,7 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	}
 }
 
-func TestCopyStaticAssetsWritesFavicon(t *testing.T) {
+func TestCopyStaticAssets(t *testing.T) {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -463,16 +463,26 @@ func TestCopyStaticAssetsWritesFavicon(t *testing.T) {
 	if err := copyStaticAssets(root); err != nil {
 		t.Fatal(err)
 	}
-	written, err := os.ReadFile(filepath.Join(root, "favicon.png"))
-	if err != nil {
-		t.Fatal(err)
+	for _, name := range []string{"favicon.png", "pplsg-cover-840.webp"} {
+		written, err := os.ReadFile(filepath.Join(root, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		source, err := os.ReadFile(filepath.Join("static", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(written) != string(source) {
+			t.Fatalf("built %s does not match the static source", name)
+		}
 	}
-	source, err := os.ReadFile(filepath.Join("static", "favicon.png"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(written) != string(source) {
-		t.Fatal("built favicon does not match the static source")
+}
+
+func TestValidateConfigRejectsNonHTTPSHomepageCover(t *testing.T) {
+	config := testConfig()
+	config.HomepageCoverURL = "http://pplstudyguide.com/cover.webp"
+	if err := validateConfig(config, 0); err == nil || !strings.Contains(err.Error(), "homepage_cover_url") {
+		t.Fatalf("validateConfig() error = %v, want homepage cover URL rejection", err)
 	}
 }
 
@@ -535,7 +545,7 @@ func buildInto(root string, config showConfig, episodes []loadedEpisode) error {
 }
 
 func testConfig() showConfig {
-	return showConfig{Title: "PPL Study Guide", Description: "Description", Language: "en-US", Author: "Author", Category: "Education", Subcategory: "Courses", BaseURL: "https://pplstudyguide.com", MediaURL: "https://media.pplstudyguide.com", CoverArtURL: "https://pplstudyguide.com/cover.png", OwnerName: "Owner", OwnerEmail: "owner@example.com", AIDisclosure: "Disclosure"}
+	return showConfig{Title: "PPL Study Guide", Description: "Description", Language: "en-US", Author: "Author", Category: "Education", Subcategory: "Courses", BaseURL: "https://pplstudyguide.com", MediaURL: "https://media.pplstudyguide.com", CoverArtURL: "https://pplstudyguide.com/cover.png", HomepageCoverURL: "https://pplstudyguide.com/cover.webp", OwnerName: "Owner", OwnerEmail: "owner@example.com", AIDisclosure: "Disclosure"}
 }
 
 func testEpisode(id, guidValue string) loadedEpisode {
