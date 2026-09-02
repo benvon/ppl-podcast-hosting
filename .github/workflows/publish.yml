@@ -103,6 +103,7 @@ jobs:
 
   discover-new-episodes:
     runs-on: ubuntu-24.04
+    environment: production
     permissions:
       contents: read
       attestations: read
@@ -119,6 +120,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          GH_LEGACY_REPO: ${{ vars.GH_LEGACY_REPO }}
         shell: bash
         run: |
           set -euo pipefail
