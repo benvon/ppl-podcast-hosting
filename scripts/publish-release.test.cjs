@@ -65,7 +65,7 @@ fi
       env: {
         ...process.env,
         GH_BIN: fakeGh,
-        GH_REPO: "benvon/ppl-postcast-hosting",
+        GH_REPO: "benvon/ppl-podcast-hosting",
         STATE_FILE: stateFile,
         CALL_LOG: logFile,
         RECORD_FILE: record,
@@ -75,7 +75,7 @@ fi
     assert.match(result.stdout, /Removing incomplete release tag/);
     assert.match(result.stdout, /Verified immutable GitHub release record/);
     const calls = fs.readFileSync(logFile, "utf8");
-    assert.match(calls, /--method DELETE repos\/benvon\/ppl-postcast-hosting\/git\/refs\/tags\/episode-07\/v0.1.4/);
+    assert.match(calls, /--method DELETE repos\/benvon\/ppl-podcast-hosting\/git\/refs\/tags\/episode-07\/v0.1.4/);
     assert.match(calls, /release create episode-07\/v0.1.4/);
     assert.ok(calls.indexOf("--method DELETE") < calls.indexOf("release create"), calls);
   } finally {

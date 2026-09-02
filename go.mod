@@ -1,4 +1,4 @@
-module github.com/benvon/ppl-postcast-hosting
+module github.com/benvon/ppl-podcast-hosting
 
 go 1.26.0
 
