@@ -63,7 +63,7 @@ esac
       env: {
         ...process.env,
         GH_BIN: fakeGh,
-        GH_REPO: "benvon/ppl-postcast-hosting",
+        GH_REPO: "benvon/ppl-podcast-hosting",
         RELEASE_STATE: fixture,
         TAG_COMMIT: commit,
       },
@@ -89,7 +89,7 @@ esac
       releaseKey,
       "1.0.0-01",
       "core-07",
-    ], { encoding: "utf8", env: { ...process.env, GH_BIN: fakeGh, GH_REPO: "benvon/ppl-postcast-hosting" } });
+    ], { encoding: "utf8", env: { ...process.env, GH_BIN: fakeGh, GH_REPO: "benvon/ppl-podcast-hosting" } });
     assert.equal(malformedVersion.status, 64, malformedVersion.stderr);
 
     fs.writeFileSync(expectedRecord, `${JSON.stringify({ schema_version: 1, source_commit: commit, release_tag: tag, episode: { id: "core-07", release_key: releaseKey, content_version: contentVersion, changed: true } })}\n`);
