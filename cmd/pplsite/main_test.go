@@ -309,7 +309,7 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") || !strings.Contains(string(homepage), "<source srcset=\"https://pplstudyguide.com/cover.webp\" type=\"image/webp\">") || !strings.Contains(string(homepage), "width=\"3000\" height=\"3000\" fetchpriority=\"high\"") || !strings.Contains(string(homepage), "<main>") {
+	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") || !strings.Contains(string(homepage), "<source srcset=\"https://pplstudyguide.com/cover.webp\" type=\"image/webp\">") || !strings.Contains(string(homepage), "width=\"3000\" height=\"3000\" fetchpriority=\"high\"") || !strings.Contains(string(homepage), ".cover{display:block;width:min(100%,420px);height:auto") || !strings.Contains(string(homepage), "<main>") {
 		t.Fatalf("homepage does not link to the open source production materials")
 	}
 	archive, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "index.html"))
