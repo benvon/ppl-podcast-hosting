@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-02T13:57:02.269Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-12
+    title: "Weather Hazards: Fronts, Thunderstorms, Icing, Fog, and Wind"
+    version: 0.2.2
+    published_at: 2026-09-02T12:43:19Z
+  source_package_files:
+    audio-manifest.yaml: 25242cb3d6f334d8d422dd597330f94b58dfcf202a5d995e71024de6591b15fc
+    claim-inventory.yaml: b90b2f47e71fbade985894d90306aaf3c247c7907513890dffdad0d5826fd803
+    episode.yaml: b7fc08be15f91bc605d7d258c92c9a8687dbad4cd2a84cdad4d1bf994d801efc
+    hosting-metadata.yaml: 2ebaa8c9d479f3f613bc60bcd4ee98e37daed282e614a325e8c3bac75aecdbbd
+    link-validation.yaml: c67001000c2d74a561563fd4e742412965fa32820c16b06e833308fb41cfb63a
+    master-script.md: 66a1dfdc25f39a580290bf218eaf6602a23cd8a8337528531c7c6fe3b94c0819
+    narration.md: 48ada00402fbfc1179cb550473fa1acd28a21734ef8543f4cc6d2e793550f4a0
+    production-log.md: ad4f34264a66d3269dadb0558a00de898db3f3ae44377e40db2dc0e620b41ce8
+    qa-checklist.md: b09092b2ef9e1887a72f23183150c95ab5cab5a737d7df3ffa865ae5536f3b0f
+    research-packet.md: 768c62e004381373ed7fe1e2170cf081c369f844122cf0494cf44b9c1eb390c0
+    show-notes-manifest.yaml: 4c4677dca3727f833e7e4aeae68c0a73dff63550eca01d7d52652fad963e5d3e
+    show-notes.md: ffb716a1ee338918ad81d8fef24e5ef434569e5f812073e20b89246748dcaaa2
+    sources.yaml: 2377df74bf7e3ffabc01dfb8e94dd74092e478a3d7c6bb8edbdac7c9aa22bd88
+  handoff_files:
+    episode.yaml: 85dbcd8408bd207d9f3a98301df0072afdde4c3fbee4fd49ab536c8b4a7b65ed
+    show-notes.md: ffb716a1ee338918ad81d8fef24e5ef434569e5f812073e20b89246748dcaaa2
+    audio.mp3: 58e6c9e31d724baa794a259ff14d8aacaddf969bc469a8d25e2ab319b8292a1b
+  audio:
+    sha256: 58e6c9e31d724baa794a259ff14d8aacaddf969bc469a8d25e2ab319b8292a1b
+    bytes: 42056727
+payload_sha256: b02f682bc3fa9ea4551c610ebdb6a798cd8203d7ebd5d73022a98da0b2f2262d

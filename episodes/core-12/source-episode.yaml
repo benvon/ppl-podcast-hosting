@@ -1,0 +1,52 @@
+id: core-12
+guid: pplstudyguide.com:core-12
+title: "Weather Hazards: Fronts, Thunderstorms, Icing, Fog, and Wind"
+description: Follow defined hypothetical route roles from northern California to
+  Wisconsin to recognize fronts, thunderstorms, icing, fog, wind, terrain
+  effects, runway components, and low-level wind shear in context.
+published_at: 2026-09-02T12:43:19Z
+duration: 00:35:03
+season: 1
+number: 12
+explicit: false
+audio: {}
+release_key: episode-12
+content_version: 0.2.2
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 42500
+  - title: Podcast introduction
+    start_ms: 80150
+  - title: What the ACS is asking you to connect
+    start_ms: 128000
+  - title: Put the hypothetical route on the table
+    start_ms: 199160
+  - title: "Northern California departure: ask why visibility is low"
+    start_ms: 297130
+  - title: "Crossing western terrain: wind is not one number"
+    start_ms: 423060
+  - title: A front on the route is a sloping volume
+    start_ms: 617890
+  - title: Front names change the route question
+    start_ms: 742250
+  - title: Place icing inside the frontal cross-section
+    start_ms: 887790
+  - title: Stop before the Plains cold front
+    start_ms: 1160920
+  - title: Use delayed radar strategically to stay clear of the convective area
+    start_ms: 1300400
+  - title: A Wisconsin arrival begins with runway geometry
+    start_ms: 1385160
+  - title: Low-level wind shear can change the arrival before the rain
+    start_ms: 1540350
+  - title: Re-plan the whole trip
+    start_ms: 1636270
+  - title: Retrieval review
+    start_ms: 1706990
+  - title: From hazards to weather information
+    start_ms: 2031350
+  - title: Outro
+    start_ms: 2059670
+chapters_audio_sha256: 58e6c9e31d724baa794a259ff14d8aacaddf969bc469a8d25e2ab319b8292a1b
