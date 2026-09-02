@@ -38,21 +38,22 @@ var showNotesMarkdown = goldmark.New(goldmark.WithExtensions(extension.Table))
 const episodesPerPage = 10
 
 type showConfig struct {
-	Title          string `yaml:"title"`
-	Description    string `yaml:"description"`
-	Language       string `yaml:"language"`
-	Author         string `yaml:"author"`
-	Copyright      string `yaml:"copyright"`
-	Explicit       bool   `yaml:"explicit"`
-	Category       string `yaml:"category"`
-	Subcategory    string `yaml:"subcategory"`
-	BaseURL        string `yaml:"base_url"`
-	MediaURL       string `yaml:"media_url"`
-	CoverArtURL    string `yaml:"cover_art_url"`
-	CoverArtSource string `yaml:"cover_art_source"`
-	OwnerName      string `yaml:"owner_name"`
-	OwnerEmail     string `yaml:"owner_email"`
-	AIDisclosure   string `yaml:"ai_disclosure"`
+	Title            string `yaml:"title"`
+	Description      string `yaml:"description"`
+	Language         string `yaml:"language"`
+	Author           string `yaml:"author"`
+	Copyright        string `yaml:"copyright"`
+	Explicit         bool   `yaml:"explicit"`
+	Category         string `yaml:"category"`
+	Subcategory      string `yaml:"subcategory"`
+	BaseURL          string `yaml:"base_url"`
+	MediaURL         string `yaml:"media_url"`
+	CoverArtURL      string `yaml:"cover_art_url"`
+	CoverArtSource   string `yaml:"cover_art_source"`
+	HomepageCoverURL string `yaml:"homepage_cover_url"`
+	OwnerName        string `yaml:"owner_name"`
+	OwnerEmail       string `yaml:"owner_email"`
+	AIDisclosure     string `yaml:"ai_disclosure"`
 }
 
 type episode struct {
@@ -831,6 +832,9 @@ func validateConfig(config showConfig, episodeCount int) error {
 	if config.CoverArtURL != "" && !strings.HasPrefix(config.CoverArtURL, "https://") {
 		return errors.New("cover_art_url must be an https URL")
 	}
+	if config.HomepageCoverURL != "" && !strings.HasPrefix(config.HomepageCoverURL, "https://") {
+		return errors.New("homepage_cover_url must be an https URL")
+	}
 	if episodeCount > 0 {
 		if strings.TrimSpace(config.CoverArtURL) == "" || strings.TrimSpace(config.OwnerName) == "" || strings.TrimSpace(config.OwnerEmail) == "" {
 			return errors.New("cover_art_url, owner_name, and owner_email are required before publishing an episode")
@@ -1170,11 +1174,16 @@ func copyCoverArt(outDir, source string) error {
 }
 
 func copyStaticAssets(outDir string) error {
-	data, err := os.ReadFile(filepath.Join("static", "favicon.png"))
-	if err != nil {
-		return fmt.Errorf("read favicon: %w", err)
+	for _, name := range []string{"favicon.png", "pplsg-cover-840.webp"} {
+		data, err := os.ReadFile(filepath.Join("static", name))
+		if err != nil {
+			return fmt.Errorf("read static asset %q: %w", name, err)
+		}
+		if err := writeFile(filepath.Join(outDir, name), data); err != nil {
+			return err
+		}
 	}
-	return writeFile(filepath.Join(outDir, "favicon.png"), data)
+	return nil
 }
 
 func rejectUnsafeOutput(path string) error {
@@ -1277,6 +1286,6 @@ type sitemapURL struct {
 	LastModifiedAt string `xml:"lastmod,omitempty"`
 }
 
-const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="website"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="{{.Config.Title}}"><meta property="og:description" content="{{.Config.Description}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Config.Title}}"><meta name="twitter:description" content="{{.Config.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.cover{display:block;width:min(100%,420px);margin:0 auto 2rem}.notice,.source{padding:1rem;border-left:4px solid #0284c7}.notice{background:#eff6ff}.source{background:#f8fafc;margin:1.5rem 0}</style></head><body><header>{{if .Config.CoverArtURL}}<img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art">{{end}}<h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/episodes/">Browse episodes</a> · <a href="/feed.xml">Subscribe with RSS</a></p></header><aside class="notice">{{.Config.AIDisclosure}}</aside><section class="source" aria-labelledby="source-materials"><h2 id="source-materials">Open source production materials</h2><p>The podcast’s production material is open source. You are welcome to review it, offer feedback, or contribute improvements on <a href="https://github.com/benvon/ppl-podcast">GitHub</a>.</p><p>The website and publishing workflow are maintained in the <a href="https://github.com/benvon/ppl-podcast-hosting">hosting repository on GitHub</a>.</p></section></body></html>`
+const indexTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="website"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="{{.Config.Title}}"><meta property="og:description" content="{{.Config.Description}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Config.Title}}"><meta name="twitter:description" content="{{.Config.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.cover{display:block;width:min(100%,420px);margin:0 auto 2rem}.notice,.source{padding:1rem;border-left:4px solid #0284c7}.notice{background:#eff6ff}.source{background:#f8fafc;margin:1.5rem 0}</style></head><body><header>{{if .Config.CoverArtURL}}{{if .Config.HomepageCoverURL}}<picture><source srcset="{{.Config.HomepageCoverURL}}" type="image/webp"><img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art" width="3000" height="3000" fetchpriority="high"></picture>{{else}}<img class="cover" src="{{.Config.CoverArtURL}}" alt="{{.Config.Title}} cover art" width="3000" height="3000" fetchpriority="high">{{end}}{{end}}<h1>{{.Config.Title}}</h1><p>{{.Config.Description}}</p><p><a href="/episodes/">Browse episodes</a> · <a href="/feed.xml">Subscribe with RSS</a></p></header><main><aside class="notice">{{.Config.AIDisclosure}}</aside><section class="source" aria-labelledby="source-materials"><h2 id="source-materials">Open source production materials</h2><p>The podcast’s production material is open source. You are welcome to review it, offer feedback, or contribute improvements on <a href="https://github.com/benvon/ppl-podcast">GitHub</a>.</p><p>The website and publishing workflow are maintained in the <a href="https://github.com/benvon/ppl-podcast-hosting">hosting repository on GitHub</a>.</p></section></main></body></html>`
 const archiveTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Episodes — {{.Config.Title}}</title><meta name="description" content="{{.Config.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="website"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="Episodes — {{.Config.Title}}"><meta property="og:description" content="{{.Config.Description}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Episodes — {{.Config.Title}}"><meta name="twitter:description" content="{{.Config.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.meta{color:#4b5563;font-size:.9em}.episode-list{list-style:none;margin:0;padding:0}.episode-list li{margin:1rem 0}.pagination{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}.pagination span{flex:1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a></p><h1>Episodes</h1><p><a href="/feed.xml">Subscribe with RSS</a></p></header><main>{{if .Episodes}}<ul class="episode-list" role="list">{{range .Episodes}}<li><a href="/episodes/{{.ID}}/"><strong>Episode {{.Number}}: {{.Title}}</strong></a><div class="meta">{{.PublishedAt.Format "January 2, 2006"}} · {{.Duration}}</div><p>{{.Description}}</p></li>{{end}}</ul>{{else}}<p>The first episode is in production. Please check back soon.</p>{{end}}{{if gt .PageCount 1}}<nav class="pagination" aria-label="Episode pages">{{if .PreviousURL}}<a href="{{.PreviousURL}}">Newer episodes</a>{{else}}<span></span>{{end}}<span>Page {{.Page}} of {{.PageCount}}</span>{{if .NextURL}}<a href="{{.NextURL}}">Older episodes</a>{{else}}<span></span>{{end}}</nav>{{end}}</main></body></html>`
 const episodeTemplate = `<!doctype html><html lang="{{.Config.Language}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Episode.Title}} — {{.Config.Title}}</title><meta name="description" content="{{.Episode.Description}}"><meta name="robots" content="index,follow"><link rel="canonical" href="{{.CanonicalURL}}"><meta property="og:type" content="article"><meta property="og:site_name" content="{{.Config.Title}}"><meta property="og:url" content="{{.CanonicalURL}}"><meta property="og:title" content="{{.Episode.Title}}"><meta property="og:description" content="{{.Episode.Description}}"><meta property="article:published_time" content="{{.Episode.PublishedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{if .Config.CoverArtURL}}<meta property="og:image" content="{{.Config.CoverArtURL}}">{{end}}<meta property="og:audio" content="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}"><meta property="og:audio:type" content="{{.Episode.Audio.ContentType}}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Episode.Title}}"><meta name="twitter:description" content="{{.Episode.Description}}"><link rel="icon" type="image/png" href="/favicon.png"><link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="/feed.xml"><style>body{font:18px/1.55 system-ui,sans-serif;max-width:760px;margin:3rem auto;padding:0 1rem;color:#18232d}a{color:#075985}.notice{background:#eff6ff;padding:1rem;border-left:4px solid #0284c7}.meta{color:#4b5563;font-size:.9em}audio{display:block;width:100%;margin:1.5rem 0}.chapters{margin:1.5rem 0}.chapters summary{cursor:pointer;font-weight:700}.chapters ol{list-style:none;margin:1rem 0 0;padding:0;border-top:1px solid #cbd5e1}.chapters button{appearance:none;background:none;border:0;border-bottom:1px solid #cbd5e1;color:inherit;cursor:pointer;display:grid;font:inherit;gap:1rem;grid-template-columns:4rem 1fr;padding:.7rem .35rem;text-align:left;width:100%}.chapters button:hover,.chapters button:focus-visible{background:#e0f2fe;outline:2px solid #0284c7;outline-offset:-2px}.chapters time{color:#4b5563;font-variant-numeric:tabular-nums}table{border-collapse:collapse}td,th{padding:.4rem;border:1px solid #cbd5e1}</style></head><body><header><p><a href="/">{{.Config.Title}}</a> · <a href="/episodes/">Episodes</a></p><h1>{{.Episode.Title}}</h1><p class="meta">Published {{.Episode.PublishedAt.Format "January 2, 2006"}} · {{.Episode.Duration}}</p><p>{{.Episode.Description}}</p><audio id="episode-audio" controls preload="metadata" data-audio-sha256="{{.Episode.Audio.SHA256}}"><source src="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}" type="{{.Episode.Audio.ContentType}}">Your browser does not support the audio player. <a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a>.</audio><p><a href="{{.Config.MediaURL}}/{{.Episode.Audio.PublicKey}}">Download MP3</a></p>{{if .Episode.Chapters}}<details class="chapters" data-chapters-audio-sha256="{{.Episode.ChaptersAudioSHA256}}"><summary>Chapters</summary><ol>{{range .Episode.Chapters}}<li><button type="button" data-chapter-start="{{chapterStartSeconds .StartMS}}"><time>{{chapterTimestamp .StartMS}}</time><span>{{.Title}}</span></button></li>{{end}}</ol></details>{{end}}</header><aside class="notice">{{.Config.AIDisclosure}}</aside><main>{{.Episode.NotesHTML}}</main>{{if .Episode.Chapters}}<script>const audio=document.getElementById("episode-audio");for(const button of document.querySelectorAll("[data-chapter-start]")){button.addEventListener("click",()=>{audio.currentTime=Number(button.dataset.chapterStart);audio.play();});}</script>{{end}}</body></html>`

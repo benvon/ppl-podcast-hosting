@@ -8,11 +8,13 @@ category: "Education"
 subcategory: "Courses"
 base_url: "https://pplstudyguide.com"
 media_url: "https://media.pplstudyguide.com"
-# The same stable, square, directory-compliant image is served on the homepage
-# and advertised in the RSS feed. Keep the source repository-relative so Pages
-# deploys the exact file after every build.
+# The stable, square, directory-compliant PNG is advertised in the RSS feed.
+# The homepage uses the responsive WebP derivative while retaining this image
+# as its fallback. Keep the source repository-relative so Pages deploys the
+# exact feed artwork after every build.
 cover_art_url: "https://pplstudyguide.com/pplsg-cover.png"
 cover_art_source: "pplsg-cover.png"
+homepage_cover_url: "https://pplstudyguide.com/pplsg-cover-840.webp"
 owner_name: "Ben Vaughan"
 owner_email: "feedback@pplstudyguide.com"
 ai_disclosure: >-
