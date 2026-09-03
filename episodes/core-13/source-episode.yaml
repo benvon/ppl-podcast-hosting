@@ -1,0 +1,62 @@
+id: core-13
+guid: pplstudyguide.com:core-13
+title: Weather Information and Preflight Decisions
+description: A route-based weather briefing lesson connecting observations,
+  forecasts, advisories, and updates to practical preflight and
+  continue-or-divert decisions.
+published_at: 2026-09-03T10:22:36Z
+duration: 00:29:02
+season: 1
+number: 13
+explicit: false
+audio: {}
+release_key: episode-13
+content_version: 0.1.1
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 14100
+  - title: Podcast introduction
+    start_ms: 52150
+  - title: What the ACS is asking you to connect
+    start_ms: 89450
+  - title: Put the hypothetical route on the table
+    start_ms: 181170
+  - title: Four questions for every product
+    start_ms: 264900
+  - title: A briefing is a decision process
+    start_ms: 370800
+  - title: Build the route-and-time worksheet
+    start_ms: 478990
+  - title: METAR and SPECI
+    start_ms: 548720
+  - title: Test the Northern California departure
+    start_ms: 658470
+  - title: PIREP
+    start_ms: 727730
+  - title: Surface analysis
+    start_ms: 808720
+  - title: Graphical Forecasts for Aviation
+    start_ms: 848980
+  - title: Winds and temperatures aloft
+    start_ms: 924560
+  - title: Test the western terrain corridor
+    start_ms: 983660
+  - title: TAF
+    start_ms: 1038020
+  - title: AIRMETs, SIGMETs, and Convective SIGMETs
+    start_ms: 1099850
+  - title: Test the Plains stop and Wisconsin arrival
+    start_ms: 1182590
+  - title: Turn the early plan into a departure decision
+    start_ms: 1271570
+  - title: Make the decision explicit
+    start_ms: 1353000
+  - title: Update the decision in flight
+    start_ms: 1413630
+  - title: Retrieval review
+    start_ms: 1489210
+  - title: Outro
+    start_ms: 1700630
+chapters_audio_sha256: 8fd2d862639b992c5053c8ec9a68b09d4468178b84e0239fe0b5f5213c97de22
