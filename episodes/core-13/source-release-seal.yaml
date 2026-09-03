@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-03T10:23:27.205Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-13
+    title: Weather Information and Preflight Decisions
+    version: 0.1.1
+    published_at: 2026-09-03T10:22:36Z
+  source_package_files:
+    audio-manifest.yaml: 1aacf05ef5b6d29264529850df14ab1127f0d6754d74f0ac15e8a7e35c24c614
+    claim-inventory.yaml: 49c9a0a6c8a27334df9bec27508c85815d5e41bc64758547ee64a302be5dd198
+    episode.yaml: 9be7982435afdb124eaffcb77413555dc12d3fbbaa26ad30f6566753119ad2a9
+    hosting-metadata.yaml: eccb08b21d25a494b6dd87506bcbf70beab51415f21b0b207e751a516986e89b
+    link-validation.yaml: dad83ec5c3fbf9b901ceb95288c0ba7f6ee8b75239b91942f51f746ad2855967
+    master-script.md: 0e9378e3b4858da83985634e0a72f3a3f19e5607578e41fd11dd071a9e8ae739
+    narration.md: 722b04b5c794a8d20d464e007a1df6feb36108c0c9643d00c2c92770ed99d639
+    production-log.md: 3385a8588272b74e8e8415caf97f749ac2f52a67aad876c98d98bc732277e800
+    qa-checklist.md: 33453fe2bcd1140ba460ea4cf332efcb73886d120bb767b831a59e1d3c1ccc7a
+    research-packet.md: 45cc018aed8c58355621121a0745228dc0af4bcbb738adf3c81208fcf4996dd7
+    show-notes-manifest.yaml: 5df28bce97530a29f7b9f29d03a64c208f6d00cf934327e5240bb3acdf1e9687
+    show-notes.md: 42ca0ee80275cb1df9414d15b03477771c2fdac617663dd61830b690e82a5e8e
+    sources.yaml: 36a0619fb2a2d65b342f71fa2a0775512b13d7b3538b24fd08113e354496e837
+  handoff_files:
+    episode.yaml: 5015da9093d9940c1ca93d281d03401946bf00b42211c6931b3b9f08931accd0
+    show-notes.md: 42ca0ee80275cb1df9414d15b03477771c2fdac617663dd61830b690e82a5e8e
+    audio.mp3: 8fd2d862639b992c5053c8ec9a68b09d4468178b84e0239fe0b5f5213c97de22
+  audio:
+    sha256: 8fd2d862639b992c5053c8ec9a68b09d4468178b84e0239fe0b5f5213c97de22
+    bytes: 34853088
+payload_sha256: 6aa77335e06e3bd3770dd5a8af109a59fed5c7f0a261c909668c5f3c2e821d4e
