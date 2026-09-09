@@ -1,0 +1,46 @@
+id: core-14
+guid: pplstudyguide.com:core-14
+title: Airport Operations and Surface Safety
+description: A scenario-led lesson on building a surface-position picture,
+  translating taxi clearances, recognizing signs and markings, and using runway
+  and taxiway lighting at day and night airports.
+published_at: 2026-09-09T13:00:08Z
+duration: 00:42:59
+season: 1
+number: 14
+explicit: false
+audio: {}
+release_key: episode-14
+content_version: 0.1.12
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 23300
+  - title: Podcast introduction
+    start_ms: 59100
+  - title: What the ACS is asking you to connect
+    start_ms: 104950
+  - title: Build the surface picture before moving
+    start_ms: 208970
+  - title: Translate the clearance before moving
+    start_ms: 389900
+  - title: Read signs and markings as a route
+    start_ms: 593600
+  - title: Hold short before the complex intersection
+    start_ms: 778290
+  - title: When the clearance and the picture disagree
+    start_ms: 1232140
+  - title: Clear the runway before the next task
+    start_ms: 1460240
+  - title: The night scenario changes the cues
+    start_ms: 1548360
+  - title: Use pilot-controlled lighting as published
+    start_ms: 1694800
+  - title: Separate the runway from the taxiway at night
+    start_ms: 1777500
+  - title: Retrieval review
+    start_ms: 2018840
+  - title: Outro
+    start_ms: 2539250
+chapters_audio_sha256: 58d8b573c712213da15d7ad5dff125ed346c0e12529b697b2fdf11a7b1cbc879

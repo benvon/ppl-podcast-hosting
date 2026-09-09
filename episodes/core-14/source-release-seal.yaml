@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-09T13:32:57.602Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-14
+    title: Airport Operations and Surface Safety
+    version: 0.1.12
+    published_at: 2026-09-09T13:00:08Z
+  source_package_files:
+    audio-manifest.yaml: c28f6e5822b2c8264cfb775c3887e4cd688e23800fd11309b82f38134ca7e392
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 374cd9eb4c4f9adc0a1678ccb772b5cab8a9734c86372803876c56ca94b9c63b
+    episode.yaml: 13e8420a7efe9c13d5ef0344d5754e05348e9b004743e030583ad4f1ac6082a6
+    hosting-metadata.yaml: c5701b32f07e9b0aeecb5b84e0a40064105f0bac717382c9cab8d79607044a36
+    link-validation.yaml: 276988a1e165274a1f3ce2ce9f27ea58e9f654394c1026e89a9c63f68b117317
+    master-script-sol.md: af2c28cd51820f370ec378109e12c9ac5a9c314037da2a2fceac8a5843d431f4
+    master-script.md: 61262079c22cdba798f5107a3e3abd2e31324c8befec347db0bb07dfb91450c3
+    narration.md: 045f45550cd702bdf2b7ecbb7a27762fd01e62e572b8d1bd7265e8a5a050a8b6
+    production-log.md: f7751b373247de9ba804ac2f30906e8e16803fb6c5ab4a341951286e13f81229
+    qa-checklist.md: 0af50ddb2031c207bb191a7d69e84474c49cf76b10e9d9847204408f3da373ba
+    research-packet.md: b3e1e7bc10b98435e8b40b8329751ad87eb5c8e8ff6985d9c50f8357d0d5502d
+    show-notes-manifest.yaml: 896581b115f52265f5b74e6fd5444eea466f6a716e4800be937c9e38a8588197
+    show-notes.md: 0eaff06e64b9333ba1e1b4561a7e40802b9327b23b89adf37a2f474e8e2f64b8
+    sources.yaml: 5fb765a18d8a66b11e55a65b32b97ab40bbaf5609e098f3e2a44b2ede3edc675
+  handoff_files:
+    episode.yaml: 0568c7c0b02f67b7ef5ae2259ace795e6407732d37647add58afffb412e30d2a
+    show-notes.md: 0eaff06e64b9333ba1e1b4561a7e40802b9327b23b89adf37a2f474e8e2f64b8
+    audio.mp3: 58d8b573c712213da15d7ad5dff125ed346c0e12529b697b2fdf11a7b1cbc879
+  audio:
+    sha256: 58d8b573c712213da15d7ad5dff125ed346c0e12529b697b2fdf11a7b1cbc879
+    bytes: 51582969
+payload_sha256: de95002f3856c0ff2bb50a81207dc58ff1cf6c691f435c5e1054bdf386b7bed2
