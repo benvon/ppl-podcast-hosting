@@ -17,6 +17,31 @@ if [[ ! "$handoff_episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
   echo "release handoff has an invalid episode id" >&2
   exit 64
 fi
+# `prepare --refresh-existing` may replace a pre-merge handoff package, but it
+# must never replace one that has reached the publication branch. Refresh the
+# remote-tracking ref first, then require both the local base and this feature
+# branch to be current with that exact publication ref. An unavailable or
+# stale ref is a safety failure, not evidence that an episode is unpublished.
+if ! git fetch --quiet origin refs/heads/main:refs/remotes/origin/main; then
+  echo "unable to refresh origin/main; refusing to stage without a current publication reference" >&2
+  exit 65
+fi
+if ! publication_ref=$(git rev-parse --verify 'origin/main^{commit}' 2>/dev/null); then
+  echo "origin/main does not resolve to a publication commit; refusing to stage" >&2
+  exit 65
+fi
+if ! local_main_ref=$(git rev-parse --verify 'main^{commit}' 2>/dev/null); then
+  echo "local main does not resolve to a commit; refusing to stage" >&2
+  exit 65
+fi
+if [[ "$local_main_ref" != "$publication_ref" ]]; then
+  echo "local main is not current with origin/main; sync main and create a fresh feature branch before staging" >&2
+  exit 65
+fi
+if ! git merge-base --is-ancestor "$publication_ref" HEAD; then
+  echo "current branch does not include the current origin/main; rebase or recreate it before staging" >&2
+  exit 65
+fi
 if git cat-file -e "origin/main:episodes/$handoff_episode_id/episode.yaml" 2>/dev/null; then
   echo "refusing to refresh an episode already present on origin/main: $handoff_episode_id" >&2
   exit 65
