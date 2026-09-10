@@ -269,6 +269,7 @@ func prepareCommand(args []string) error {
 	audioPath := fs.String("audio", "", "local MP3 path")
 	outDir := fs.String("out", "episodes", "episodes output directory")
 	stagingPrefix := fs.String("staging-prefix", "staging", "private R2 staging key prefix")
+	refreshExisting := fs.Bool("refresh-existing", false, "refresh an unmodified existing release package with a new source release seal")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -327,7 +328,12 @@ func prepareCommand(args []string) error {
 	}
 	outputDir := filepath.Join(*outDir, input.ID)
 	if _, err := os.Stat(outputDir); err == nil {
-		return fmt.Errorf("refusing to replace existing release directory %q", outputDir)
+		if !*refreshExisting {
+			return fmt.Errorf("refusing to replace existing release directory %q", outputDir)
+		}
+		if err := verifyRefreshableRelease(outputDir, input, notes); err != nil {
+			return fmt.Errorf("refusing to refresh existing release directory %q: %w", outputDir, err)
+		}
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("inspect output directory: %w", err)
 	}
@@ -359,6 +365,39 @@ func prepareCommand(args []string) error {
 		return err
 	}
 	fmt.Printf("episode_id=%s\nstaging_key=%s\npublic_key=%s\nsha256=%s\nbytes=%d\n", input.ID, input.Audio.StagingKey, input.Audio.PublicKey, input.Audio.SHA256, input.Audio.Bytes)
+	return nil
+}
+
+func verifyRefreshableRelease(outputDir string, input episode, notes []byte) error {
+	existing, err := loadEpisode(filepath.Join(outputDir, "episode.yaml"))
+	if err != nil {
+		return fmt.Errorf("read existing episode metadata: %w", err)
+	}
+	if existing.Audio != input.Audio {
+		return errors.New("audio identity differs")
+	}
+	comparableExisting := existing
+	comparableExisting.Audio = audio{}
+	comparableExisting.SourceReleaseSealSHA256 = ""
+	comparableInput := input
+	comparableInput.Audio = audio{}
+	comparableInput.SourceReleaseSealSHA256 = ""
+	if len(comparableExisting.Chapters) == 0 {
+		comparableExisting.Chapters = nil
+	}
+	if len(comparableInput.Chapters) == 0 {
+		comparableInput.Chapters = nil
+	}
+	if !reflect.DeepEqual(comparableExisting, comparableInput) {
+		return errors.New("episode content differs")
+	}
+	existingNotes, err := os.ReadFile(filepath.Join(outputDir, "show-notes.md"))
+	if err != nil {
+		return fmt.Errorf("read existing show notes: %w", err)
+	}
+	if !bytes.Equal(existingNotes, notes) {
+		return errors.New("show notes differ")
+	}
 	return nil
 }
 

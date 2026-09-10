@@ -12,6 +12,16 @@ if [[ ! -d "$release_dir" || ! -f "$release_dir/episode.yaml" || ! -f "$release_
   exit 64
 fi
 
+handoff_episode_id=$(awk -F: '$1 == "id" { gsub(/[[:space:]\"'"'"']/, "", $2); print $2; exit }' "$release_dir/episode.yaml")
+if [[ ! "$handoff_episode_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
+  echo "release handoff has an invalid episode id" >&2
+  exit 64
+fi
+if git cat-file -e "origin/main:episodes/$handoff_episode_id/episode.yaml" 2>/dev/null; then
+  echo "refusing to refresh an episode already present on origin/main: $handoff_episode_id" >&2
+  exit 65
+fi
+
 mise exec -- go run ./cmd/pplsite verify-handoff --source "$release_dir" --audio "$release_dir/audio.mp3"
 
 : "${R2_ENDPOINT:?set R2_ENDPOINT to https://<account-id>.r2.cloudflarestorage.com}"
@@ -25,30 +35,34 @@ if ! command -v aws >/dev/null 2>&1; then
   exit 69
 fi
 
-prepare_output=$(mise exec -- go run ./cmd/pplsite prepare --source "$release_dir" --audio "$release_dir/audio.mp3" --out episodes)
+prepare_output=$(mise exec -- go run ./cmd/pplsite prepare --source "$release_dir" --audio "$release_dir/audio.mp3" --out episodes --refresh-existing)
 printf '%s\n' "$prepare_output"
 
 episode_id=$(awk -F= '$1 == "episode_id" { print $2 }' <<<"$prepare_output")
 staging_key=$(awk -F= '$1 == "staging_key" { print $2 }' <<<"$prepare_output")
 sha256=$(awk -F= '$1 == "sha256" { print $2 }' <<<"$prepare_output")
+audio_bytes=$(awk -F= '$1 == "bytes" { print $2 }' <<<"$prepare_output")
 
-if [[ -z "$episode_id" || -z "$staging_key" || -z "$sha256" ]]; then
+if [[ -z "$episode_id" || -z "$staging_key" || -z "$sha256" || -z "$audio_bytes" ]]; then
   echo "publisher did not return the expected release metadata" >&2
   exit 70
 fi
 
-if aws s3api head-object --bucket "$PPL_R2_STAGING_BUCKET" --key "$staging_key" --endpoint-url "$R2_ENDPOINT" >/dev/null 2>&1; then
-  echo "refusing to replace existing staging object: $staging_key" >&2
-  echo "remove the newly generated episodes/$episode_id directory only after confirming it is not part of another release" >&2
-  exit 65
+if staged_identity=$(aws s3api head-object --bucket "$PPL_R2_STAGING_BUCKET" --key "$staging_key" --endpoint-url "$R2_ENDPOINT" --query '[ContentLength, Metadata.sha256]' --output text 2>/dev/null); then
+  read -r staged_bytes staged_sha256 <<<"$staged_identity"
+  if [[ "$staged_bytes" != "$audio_bytes" || "$staged_sha256" != "$sha256" ]]; then
+    echo "refusing to reuse staging object with a different audio identity: $staging_key" >&2
+    exit 65
+  fi
+  echo "Reused verified private staging audio: $staging_key"
+else
+  aws s3 cp "$release_dir/audio.mp3" "s3://$PPL_R2_STAGING_BUCKET/$staging_key" \
+    --endpoint-url "$R2_ENDPOINT" \
+    --content-type audio/mpeg \
+    --cache-control 'no-store' \
+    --metadata "sha256=$sha256"
 fi
 
-aws s3 cp "$release_dir/audio.mp3" "s3://$PPL_R2_STAGING_BUCKET/$staging_key" \
-  --endpoint-url "$R2_ENDPOINT" \
-  --content-type audio/mpeg \
-  --cache-control 'no-store' \
-  --metadata "sha256=$sha256"
-
 echo ""
-echo "Staged private audio and created episodes/$episode_id/."
+echo "Staged private audio and prepared episodes/$episode_id/."
 echo "Review it, then create a release PR. Merging that PR into main publishes the episode."
