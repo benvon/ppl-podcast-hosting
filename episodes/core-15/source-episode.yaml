@@ -1,0 +1,38 @@
+id: core-15
+guid: pplstudyguide.com:core-15
+title: Traffic Patterns, Nontowered Operations, and Right of Way
+description: A scenario-led lesson on building a traffic picture at a nontowered
+  airport, joining the established pattern, communicating on CTAF, and using
+  visual scanning and right-of-way rules to create spacing early.
+published_at: 2026-09-10T22:29:37Z
+duration: 00:32:54
+season: 1
+number: 15
+explicit: false
+audio: {}
+release_key: episode-15
+content_version: 0.1.11
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 21100
+  - title: Podcast introduction
+    start_ms: 59100
+  - title: What the ACS is asking you to connect
+    start_ms: 96200
+  - title: Build the traffic picture before arriving
+    start_ms: 170810
+  - title: Join the established flow
+    start_ms: 548060
+  - title: Communicate to improve the shared picture
+    start_ms: 889930
+  - title: Resolve conflicts before they become close
+    start_ms: 1060880
+  - title: Land without turning priority into pressure
+    start_ms: 1394210
+  - title: Retrieval review
+    start_ms: 1545050
+  - title: Outro
+    start_ms: 1931030
+chapters_audio_sha256: f1cc2f53f6c24950d6f3158418f708c3dd357023f1665a29611b9766f7bf493f

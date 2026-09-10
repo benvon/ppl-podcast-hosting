@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-10T22:30:44.362Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-15
+    title: Traffic Patterns, Nontowered Operations, and Right of Way
+    version: 0.1.11
+    published_at: 2026-09-10T22:29:37Z
+  source_package_files:
+    audio-manifest.yaml: 3b4e7e52c5484a980fe609eac9b9e1e42d2c94175ef2667b8f9d536bc95e1e05
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: aafa272016635570ff3042b6c41102acc1af97a650ca5f40924a4976349ca28e
+    episode.yaml: f323b385d8e22348c72ceac0c7fe944c2403382632a02513dcb0fa06d8f1a065
+    hosting-metadata.yaml: 3789c5d435bfb8f3daf7057aaab136c7d864c5b847360db533a07c84b17cda4e
+    link-validation.yaml: fbb2a79669a4aa9c65494aff26e9ae27bd8626d8eb071d3f28b22b98a0cf1ac5
+    master-script.md: 798412c6be18488458e071952c63b70e9020df18d5956b27cd74ff9e37dc983a
+    narration.md: 364769889e790b034d647e299d172d6dd93ea3895d52dd8316cf355bf57848ee
+    production-log.md: b7b381e462ab40e3814e8b0c4bc3c3b24a82e64148d51962a2d9252aae4476d2
+    qa-checklist.md: 4d387fce1c485370588ce3bdfcdb3616b973203c0e662f5a8da4625926d1a2ba
+    research-packet.md: 46e47a2532560669dd6797e2ab52666515538495f620ebb9952077b048958f20
+    show-notes-manifest.yaml: 3b89c4446a149a7d46a2052bdcd8a1d3326805b6017498517cc593724806ac17
+    show-notes.md: 8ef7f71fc88060b2f5e4383246f1f354b2a871c00711b27c8964820113cad30f
+    source-review-adjudications.yaml: 56044fde4c5b57481cacf5cf8ce03ab18966f95dc4f33113902d0dcee9aaeb7b
+    sources.yaml: b7cd01b4bee09701dae0191faa442a9f093ca7bbbf5df7b216fc73e91c07f708
+  handoff_files:
+    episode.yaml: 2a56d83ff7b06388d083af3f598a7a96c098b8fbc911ce61be51977c9e711c9e
+    show-notes.md: 8ef7f71fc88060b2f5e4383246f1f354b2a871c00711b27c8964820113cad30f
+    audio.mp3: f1cc2f53f6c24950d6f3158418f708c3dd357023f1665a29611b9766f7bf493f
+  audio:
+    sha256: f1cc2f53f6c24950d6f3158418f708c3dd357023f1665a29611b9766f7bf493f
+    bytes: 39482295
+payload_sha256: 021e098019d65cd2056dcbd4c6f4498f78e610f71421897f1a733afadac015c4
