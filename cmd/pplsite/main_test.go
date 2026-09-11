@@ -114,6 +114,64 @@ audio: {}
 	}
 }
 
+func TestPrepareRefreshesOnlyAnIdenticalReleasePackage(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("deterministic release bytes"))
+	writeTestFile(t, filepath.Join(source, "show-notes.md"), []byte("# Notes\n"))
+	writeTestFile(t, filepath.Join(source, "episode.yaml"), []byte(`id: refreshable
+guid: pplstudyguide.com:refreshable
+title: Refreshable episode
+description: A tested episode.
+published_at: 2026-08-15T14:00:00Z
+duration: "00:01:00"
+season: 1
+number: 1
+release_key: episode-01
+content_version: 0.1.0
+explicit: false
+audio: {}
+`))
+	writeTestHandoffSeal(t, source, "0.1.0")
+	output := filepath.Join(root, "episodes")
+	args := []string{"--source", source, "--audio", filepath.Join(source, "audio.mp3"), "--out", output}
+	if err := prepareCommand(args); err != nil {
+		t.Fatal(err)
+	}
+
+	// A seal can change when source-package validation changes even though the
+	// listener-facing content and immutable audio identity remain the same.
+	sealPath := filepath.Join(source, "source-release-seal.yaml")
+	seal, err := os.ReadFile(sealPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTestFile(t, sealPath, append(seal, []byte("# refreshed source validation\n")...))
+	refreshedSeal, _, err := fileSHA256(sealPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := prepareCommand(append(args, "--refresh-existing")); err != nil {
+		t.Fatalf("prepareCommand() refresh error = %v", err)
+	}
+	prepared, err := loadEpisode(filepath.Join(output, "refreshable", "episode.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prepared.SourceReleaseSealSHA256 != refreshedSeal {
+		t.Fatalf("refreshed seal checksum = %q, want %q", prepared.SourceReleaseSealSHA256, refreshedSeal)
+	}
+
+	writeTestFile(t, filepath.Join(source, "audio.mp3"), []byte("different release bytes"))
+	writeTestHandoffSeal(t, source, "0.1.0")
+	if err := prepareCommand(append(args, "--refresh-existing")); err == nil || !strings.Contains(err.Error(), "audio identity differs") {
+		t.Fatalf("prepareCommand() refresh error = %v, want audio identity rejection", err)
+	}
+}
+
 func TestPrepareRejectsChapterMarkersForDifferentAudio(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
