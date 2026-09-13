@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-13T13:11:39.232Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-16
+    title: Airspace, Equipment, and VFR Weather Minimums
+    version: 0.1.14
+    published_at: 2026-09-13T13:10:54Z
+  source_package_files:
+    audio-manifest.yaml: 627893aa79d799027b6aa730dd97691e12be54f2991d9d5688689009ed8f1adc
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: b93cab8d7305644a240f5761381f6142ddee6b62fcd359a6e2bf49f59fcb1bf2
+    episode.yaml: 2c0adf29cd302892a96421e6fad3b7c09e52f6f632e9d111b10bf2418d3d0094
+    hosting-metadata.yaml: 7a6252a301c15ea55fdcaffe6c43f54169d69a4b5062757dc8f3288fc93481ea
+    link-validation.yaml: 453d85c59ad4287586d72702b13767bf23fa1a61da62140604d91924aaeaf5e0
+    master-script.md: f6bd5a451a4257f888c40c0e205ca271a19c316fa234369f6bd52081962969f7
+    narration.md: 4a66e70d81586ab70d00e2a5f1e93ec70c834d3f22992a44b186519f700120d0
+    production-log.md: a288539a5862fa3f1fb411ffc9b6c6d2e94c3c6b3476c50a896a6ff47189a8cb
+    publication-link-validation.yaml: 8d49e2b2fc7a1d60c7d966f277c7085467571b9aae38597b95cd5db8f43e17c4
+    qa-checklist.md: b68ea157994ee73e9452c4b49128ecaac4ac19fe1e5a729f963f32141fdab242
+    research-packet.md: 4acd4159ce2d4687dfd338068699361a41f3fd996071ad77103ba468c7c2bf03
+    show-notes-manifest.yaml: 89001be82485f6cd46d61fbc126465eb0b1705b3d056fbb45c1923ad6003fec8
+    show-notes.md: ce77bc6ace01259489a158e057bbf0a31d02b516ad834c8574c0057667f0ab5a
+    sources.yaml: a9ed1a9de633d3951c6eb253a03257c630899e0e881367ef396ca071ea1a28cf
+  handoff_files:
+    episode.yaml: c53f5d6af9c05cb89a83d222298f86518b0e334c087c1af4b76c92cf8624ad9d
+    show-notes.md: ce77bc6ace01259489a158e057bbf0a31d02b516ad834c8574c0057667f0ab5a
+    audio.mp3: e3a7873650122b3b83e9018b4b60b106abba394447c72e70c5b1e18b06cdb8de
+  audio:
+    sha256: e3a7873650122b3b83e9018b4b60b106abba394447c72e70c5b1e18b06cdb8de
+    bytes: 49176570
+payload_sha256: c63137b43c45bd86d943e6321a6a010e9b6bd95b9e8bda902fb17ac3d69d48d0

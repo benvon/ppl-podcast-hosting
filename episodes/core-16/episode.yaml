@@ -1,0 +1,46 @@
+id: core-16
+release_key: episode-16
+content_version: 0.1.14
+guid: pplstudyguide.com:core-16
+title: Airspace, Equipment, and VFR Weather Minimums
+description: A scenario-based lesson connecting airspace position, entry and communication requirements, aircraft equipment, VFR weather minimums, Special VFR, special use airspace, and other charted areas.
+published_at: 2026-09-13T13:10:54Z
+duration: "00:40:59"
+season: 1
+number: 16
+explicit: false
+audio:
+    staging_key: staging/core-16/e3a7873650122b3b83e9018b4b60b106abba394447c72e70c5b1e18b06cdb8de.mp3
+    public_key: audio/core-16-e3a7873650122b3b.mp3
+    sha256: e3a7873650122b3b83e9018b4b60b106abba394447c72e70c5b1e18b06cdb8de
+    bytes: 49176570
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 27950
+    - title: Podcast introduction
+      start_ms: 65250
+    - title: What the ACS is asking you to connect
+      start_ms: 96500
+    - title: Build a three-dimensional airspace picture
+      start_ms: 231320
+    - title: Match each class to its entry question
+      start_ms: 481880
+    - title: Match the equipment to the route
+      start_ms: 787750
+    - title: Turn weather minimums into a usable picture
+      start_ms: 1063500
+    - title: Apply the minimums to one changing flight
+      start_ms: 1392820
+    - title: Use Special VFR as a separate decision
+      start_ms: 1535850
+    - title: Distinguish special use airspace from other charted areas
+      start_ms: 1750770
+    - title: Retrieval review
+      start_ms: 2013390
+    - title: Outro
+      start_ms: 2416500
+chapters_audio_sha256: e3a7873650122b3b83e9018b4b60b106abba394447c72e70c5b1e18b06cdb8de
+source_release_seal_sha256: 852f3c0f9aeae9a2332ce6d4a75cb9f6cf650543a578adf9d323a82c4ed6b433
