@@ -1,0 +1,48 @@
+id: core-17
+release_key: episode-17
+content_version: 0.1.2
+guid: pplstudyguide.com:core-17
+title: Charts, Pilotage, and Dead Reckoning
+description: A fictional daytime cross-country turns a current sectional, visual checkpoints, wind-corrected headings, groundspeed, and ETA into one practical navigation feedback loop.
+published_at: 2026-09-16T18:22:07Z
+duration: "00:37:34"
+season: 1
+number: 17
+explicit: false
+audio:
+    staging_key: staging/core-17/d9463abb9c536b1cdaaee7fcf8bc3cf20049dd87d3f064b5fc013320757ef79f.mp3
+    public_key: audio/core-17-d9463abb9c536b1c.mp3
+    sha256: d9463abb9c536b1cdaaee7fcf8bc3cf20049dd87d3f064b5fc013320757ef79f
+    bytes: 45078360
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 19400
+    - title: Podcast introduction
+      start_ms: 56100
+    - title: What the ACS is asking you to connect
+      start_ms: 87750
+    - title: Begin with the current chart
+      start_ms: 231760
+    - title: Read the route as a physical picture
+      start_ms: 353760
+    - title: Choose checkpoints that can survive first contact
+      start_ms: 713220
+    - title: Build the dead-reckoning picture
+      start_ms: 925890
+    - title: Turn the course into a heading
+      start_ms: 1124840
+    - title: Build the navigation log
+      start_ms: 1252040
+    - title: Compare the plan with actual progress
+      start_ms: 1537080
+    - title: Keep the two methods working together
+      start_ms: 1831580
+    - title: Retrieval review
+      start_ms: 1906140
+    - title: Outro
+      start_ms: 2213120
+chapters_audio_sha256: d9463abb9c536b1cdaaee7fcf8bc3cf20049dd87d3f064b5fc013320757ef79f
+source_release_seal_sha256: a0dd43bb551c3cd2af7d1c211c38dae63562283d160542b7a7eb51c65ba2568c
