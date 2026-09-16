@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-16T18:22:46.443Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-17
+    title: Charts, Pilotage, and Dead Reckoning
+    version: 0.1.2
+    published_at: 2026-09-16T18:22:07Z
+  source_package_files:
+    audio-manifest.yaml: 2836ba5bcc0eae8002e8fc3249cc9cc6b77d64ebb1d88795e57900d994615e2a
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 1241a096aa9bca39e6a76bfbd3fcff18e0a3efbfcb6fe553ff2aee69f017d969
+    episode.yaml: 9c8b5fb38874608d2a774fc1e182071f66572d8f809890dc7203855abf6e2114
+    hosting-metadata.yaml: 29bc9afdf68434e267dbdd0620f3a7953ad76803b2a19940a01e0c4af19a5367
+    link-validation.yaml: d1859b40ae7f81ab9b67356c96a6db05b17c04d2e584967ef43d3c657a749feb
+    master-script.md: 539663ff72b670d878cbe4d70f840172841d55e39042dae77d4191d07962d2eb
+    narration.md: ee6c0123741532a063a8cf9615c17d2d28672b4dc4362801be01c8da42142402
+    production-log.md: 302f277d4fbf625776120306e6e5746a313a6e8be1628c254dd13f257a8f58df
+    publication-link-validation.yaml: 6175a4d96f810936d8f63413fca19fafe0e14e02c2a9551dc43bea88f86bce07
+    qa-checklist.md: 345a8cb9ed9fd6b29e06bacde643a46461003dee95469a9516d9c4f57635b469
+    research-packet.md: 961f8931bc93c46b9735f760a726d9c0efbe4579bdc1f605c595bf6cf37e5282
+    show-notes-manifest.yaml: 8728c3bae808bbba29eea68d89d38f5a00f9900cbbfffd376ffb5b36d7d68bef
+    show-notes.md: 286de329d6a16435fa839ab35a86cd9aa845f1713cc4fac69d0ff159f36ae981
+    sources.yaml: 28bd484e0168d77d9413fd1315d3ff308ea2049358df391cbf84e8762733bbd9
+  handoff_files:
+    episode.yaml: 44eb97bdf2c6e97a26487fdd72d25345356c33a042a953528d2be1dffc9e0d71
+    show-notes.md: 286de329d6a16435fa839ab35a86cd9aa845f1713cc4fac69d0ff159f36ae981
+    audio.mp3: d9463abb9c536b1cdaaee7fcf8bc3cf20049dd87d3f064b5fc013320757ef79f
+  audio:
+    sha256: d9463abb9c536b1cdaaee7fcf8bc3cf20049dd87d3f064b5fc013320757ef79f
+    bytes: 45078360
+payload_sha256: 1918e8643afac1b7478cd54f89c7f9d0ba6d5d7949af7b2108fd2de5d31a8771
