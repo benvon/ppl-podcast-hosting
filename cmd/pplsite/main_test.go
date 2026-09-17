@@ -360,21 +360,21 @@ func TestBuildWritesFeedAndShowNotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(page), "Episode notes") || !strings.Contains(string(page), "<audio id=\"episode-audio\" controls") || !strings.Contains(string(page), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(page), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/first/\"") || !strings.Contains(string(page), "property=\"og:type\" content=\"article\"") {
+	if !strings.Contains(string(page), "Episode notes") || !strings.Contains(string(page), "<audio id=\"episode-audio\" controls") || !strings.Contains(string(page), "https://media.pplstudyguide.com/audio/first.mp3") || !strings.Contains(string(page), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/first/\"") || !strings.Contains(string(page), "property=\"og:type\" content=\"article\"") || !strings.Contains(string(page), "By Owner.") || !strings.Contains(string(page), "CC BY 4.0") || !strings.Contains(string(page), "BSD 3-Clause") {
 		t.Fatalf("show notes were not rendered")
 	}
 	homepage, err := os.ReadFile(filepath.Join(root, "dist", "index.html"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") || !strings.Contains(string(homepage), "<source srcset=\"https://pplstudyguide.com/cover.webp\" type=\"image/webp\">") || !strings.Contains(string(homepage), "width=\"3000\" height=\"3000\" fetchpriority=\"high\"") || !strings.Contains(string(homepage), ".cover{display:block;width:min(100%,420px);height:auto") || !strings.Contains(string(homepage), "<main>") {
+	if !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast") || !strings.Contains(string(homepage), "https://github.com/benvon/ppl-podcast-hosting") || !strings.Contains(string(homepage), "href=\"/episodes/\"") || !strings.Contains(string(homepage), "rel=\"canonical\" href=\"https://pplstudyguide.com/\"") || !strings.Contains(string(homepage), "name=\"twitter:card\" content=\"summary_large_image\"") || !strings.Contains(string(homepage), "<source srcset=\"https://pplstudyguide.com/cover.webp\" type=\"image/webp\">") || !strings.Contains(string(homepage), "width=\"3000\" height=\"3000\" fetchpriority=\"high\"") || !strings.Contains(string(homepage), ".cover{display:block;width:min(100%,420px);height:auto") || !strings.Contains(string(homepage), "<main>") || !strings.Contains(string(homepage), "By Owner.") || !strings.Contains(string(homepage), "CC BY 4.0") || !strings.Contains(string(homepage), "BSD 3-Clause") {
 		t.Fatalf("homepage does not link to the open source production materials")
 	}
 	archive, err := os.ReadFile(filepath.Join(root, "dist", "episodes", "index.html"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(archive), "Episode first") || !strings.Contains(string(archive), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/\"") {
+	if !strings.Contains(string(archive), "Episode first") || !strings.Contains(string(archive), "rel=\"canonical\" href=\"https://pplstudyguide.com/episodes/\"") || !strings.Contains(string(archive), "By Owner.") || !strings.Contains(string(archive), "CC BY 4.0") || !strings.Contains(string(archive), "BSD 3-Clause") {
 		t.Fatalf("episode archive does not contain the episode: %s", archive)
 	}
 	sitemap, err := os.ReadFile(filepath.Join(root, "dist", "sitemap.xml"))
@@ -499,6 +499,32 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	}
 	if !strings.Contains(string(second), "Episode 1: Test title 01") || strings.Contains(string(second), "Episode 2: Test title 02") || !strings.Contains(string(second), "href=\"/episodes/\"") {
 		t.Fatalf("second archive page has incorrect pagination: %s", second)
+	}
+}
+
+func TestFooterOmitsBylineWithoutOwner(t *testing.T) {
+	root := t.TempDir()
+	config := testConfig()
+	config.OwnerName = ""
+
+	if err := writeIndex(filepath.Join(root, "index.html"), config); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeEpisodeArchive(root, config, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, path := range []string{filepath.Join(root, "index.html"), filepath.Join(root, "episodes", "index.html")} {
+		page, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(page), "By .") {
+			t.Fatalf("footer in %q contains an empty byline: %s", path, page)
+		}
+		if !strings.Contains(string(page), "CC BY 4.0") || !strings.Contains(string(page), "BSD 3-Clause") {
+			t.Fatalf("footer in %q is missing license information: %s", path, page)
+		}
 	}
 }
 

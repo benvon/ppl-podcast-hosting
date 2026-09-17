@@ -12,3 +12,8 @@
 - Start from a clean, current `main` and use a fresh `feature/` branch.
 - Before opening a release PR, run the repository tests, sealed-package validation, and static-site build using the repository's documented `mise` tasks. PR validation must remain credential-free.
 - Commit only the generated episode contract and related reviewed changes; audio stays outside Git. A merge to `main` performs public publication, deployment, and release attestation.
+
+## Markdown style
+
+- Keep prose paragraphs and list items on one physical line; do not manually wrap Markdown to a fixed width or add hard line breaks for presentation.
+- Preserve structural line breaks in headings, tables, fenced code blocks, and other Markdown constructs that require them.
