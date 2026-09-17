@@ -502,6 +502,32 @@ func TestWriteEpisodeArchivePaginatesEpisodes(t *testing.T) {
 	}
 }
 
+func TestFooterOmitsBylineWithoutOwner(t *testing.T) {
+	root := t.TempDir()
+	config := testConfig()
+	config.OwnerName = ""
+
+	if err := writeIndex(filepath.Join(root, "index.html"), config); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeEpisodeArchive(root, config, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, path := range []string{filepath.Join(root, "index.html"), filepath.Join(root, "episodes", "index.html")} {
+		page, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(page), "By .") {
+			t.Fatalf("footer in %q contains an empty byline: %s", path, page)
+		}
+		if !strings.Contains(string(page), "CC BY 4.0") || !strings.Contains(string(page), "BSD 3-Clause") {
+			t.Fatalf("footer in %q is missing license information: %s", path, page)
+		}
+	}
+}
+
 func TestCopyStaticAssets(t *testing.T) {
 	workingDir, err := os.Getwd()
 	if err != nil {
