@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bytes"
@@ -280,7 +280,7 @@ audio: {}
 		t.Fatal(err)
 	}
 	historical := testEpisode("historical", "pplstudyguide.com:historical")
-	historicalData, err := yaml.Marshal(historical.episode)
+	historicalData, err := yaml.Marshal(historical.Episode)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -459,7 +459,7 @@ func TestValidateEpisodeRejectsChapterAtOrBeyondDuration(t *testing.T) {
 	episode.Duration = "00:01:00"
 	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}, {Title: "Too late", StartMS: 60_000}}
 	episode.ChaptersAudioSHA256 = episode.Audio.SHA256
-	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "must start before the episode duration") {
+	if err := validateEpisode(episode.Episode); err == nil || !strings.Contains(err.Error(), "must start before the episode duration") {
 		t.Fatalf("validateEpisode() error = %v, want chapter-duration bound failure", err)
 	}
 }
@@ -468,7 +468,7 @@ func TestValidateEpisodeRejectsChapterMarkersForDifferentAudio(t *testing.T) {
 	episode := testEpisode("chapter-audio-binding", "pplstudyguide.com:chapter-audio-binding")
 	episode.Chapters = []chapter{{Title: "Opening", StartMS: 0}}
 	episode.ChaptersAudioSHA256 = strings.Repeat("b", 64)
-	if err := validateEpisode(episode.episode); err == nil || !strings.Contains(err.Error(), "chapter markers must be bound to the staged audio checksum") {
+	if err := validateEpisode(episode.Episode); err == nil || !strings.Contains(err.Error(), "chapter markers must be bound to the staged audio checksum") {
 		t.Fatalf("validateEpisode() error = %v, want chapter/audio checksum binding failure", err)
 	}
 }
@@ -633,7 +633,7 @@ func testConfig() showConfig {
 }
 
 func testEpisode(id, guidValue string) loadedEpisode {
-	return loadedEpisode{episode: episode{ID: id, GUID: guidValue, Title: "Episode " + id, Description: "Description", PublishedAt: time.Date(2026, 8, 15, 14, 0, 0, 0, time.UTC), Duration: "00:01:00", Season: 1, Number: 1, Audio: audio{StagingKey: "staging/" + id + "/audio.mp3", PublicKey: "audio/" + id + ".mp3", SHA256: strings.Repeat("a", 64), Bytes: 10, ContentType: "audio/mpeg"}}}
+	return loadedEpisode{Episode: episode{ID: id, GUID: guidValue, Title: "Episode " + id, Description: "Description", PublishedAt: time.Date(2026, 8, 15, 14, 0, 0, 0, time.UTC), Duration: "00:01:00", Season: 1, Number: 1, Audio: audio{StagingKey: "staging/" + id + "/audio.mp3", PublicKey: "audio/" + id + ".mp3", SHA256: strings.Repeat("a", 64), Bytes: 10, ContentType: "audio/mpeg"}}}
 }
 
 func writeTestFile(t *testing.T, path string, content []byte) {

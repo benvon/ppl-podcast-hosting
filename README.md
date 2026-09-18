@@ -8,6 +8,10 @@ This repository is the GitHub-controlled publishing plane for the public PPL Stu
 
 The source material and local master audio stay outside this repository. The release contract here records the exact staged audio object and its SHA-256; audio is never committed to Git.
 
+## Publisher architecture
+
+The `pplsite` binary is a small modular Go application. `cmd/pplsite` owns only process startup and exit behavior; `internal/cli` owns flags and command output; `internal/podcast` owns the show and episode contracts, strict YAML loading, validation, and show-note rendering; `internal/release` owns sealed-handoff identity, provenance, preparation, candidate discovery, and publication records; and `internal/site` owns RSS and static-site generation. The release and site packages both depend on the podcast contracts but remain independent from one another. HTML templates are embedded from `internal/site/templates`, so builds do not depend on template files being present at runtime.
+
 ## Licensing
 
 The repository's source code and publishing tooling are licensed under the [BSD 3-Clause License](LICENSE). Original PPL Study Guide podcast and site content is licensed under [CC BY 4.0](CONTENT-LICENSE.md). Third-party material and trademarks are not included in either grant.
@@ -79,6 +83,12 @@ Run a local validation without making network calls:
 ```bash
 mise run validate
 mise run build
+```
+
+Run the same formatting, linting, test, security, vulnerability, package-validation, and temporary-build checks required for pull requests:
+
+```bash
+mise run ci
 ```
 
 Stage an episode from a new branch:
