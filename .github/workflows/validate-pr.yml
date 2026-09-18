@@ -14,19 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version: '1.26.6'
+      - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
 
-      - name: Run publisher tests
-        run: go test ./... && node --test scripts/*.test.cjs
-
-      - name: Validate sealed episode packages
-        run: go run ./cmd/pplsite validate --config config/show.yaml --episodes episodes
-
-      - name: Build static podcast site
-        run: go run ./cmd/pplsite build --config config/show.yaml --episodes episodes --out dist
+      - name: Run CI
+        run: mise run ci

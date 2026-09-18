@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/publish.yml'
       - 'cmd/**'
+      - 'internal/**'
       - 'config/**'
       - 'episodes/**'
       - 'static/**'
@@ -40,7 +41,7 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '1.26.6'
+          go-version: '1.26.8'
 
       - name: Require the main publication ref
         shell: bash
@@ -114,7 +115,7 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '1.26.6'
+          go-version: '1.26.8'
 
       - id: discover
         env:
@@ -162,7 +163,7 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '1.26.6'
+          go-version: '1.26.8'
 
       - name: Build publication record
         run: >-
