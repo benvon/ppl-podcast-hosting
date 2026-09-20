@@ -1,0 +1,40 @@
+id: core-18
+guid: pplstudyguide.com:core-18
+title: VOR, GPS, Radar Services, and Navigation Systems
+description: A fictional daytime VFR flight uses VOR, GPS, TIS-B traffic
+  information, and VFR radar services as cross-checks without turning any
+  display or advisory into a substitute for visual flying.
+published_at: 2026-09-20T20:25:51Z
+duration: 00:31:34
+season: 1
+number: 18
+explicit: false
+audio: {}
+release_key: episode-18
+content_version: 0.2.5
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 27700
+  - title: Podcast introduction
+    start_ms: 63750
+  - title: What the ACS is asking you to connect
+    start_ms: 97700
+  - title: "Before departure: prepare the picture and the receivers"
+    start_ms: 195010
+  - title: "VOR and DME: build the navigation reference"
+    start_ms: 457080
+  - title: "GPS: a prepared position source"
+    start_ms: 804720
+  - title: "ADS-B traffic information: make the traffic search more specific"
+    start_ms: 924110
+  - title: "Flight following and VFR radar services: establish the ATC relationship"
+    start_ms: 1144880
+  - title: The complete Meadow Ridge–Harbor sequence
+    start_ms: 1318330
+  - title: Retrieval review
+    start_ms: 1618190
+  - title: Outro
+    start_ms: 1816280
+chapters_audio_sha256: e3f7f6248b8def4719bee3e7f6ea4add17b6876439ec3f04783b1b779003bace
