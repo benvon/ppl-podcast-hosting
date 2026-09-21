@@ -1,0 +1,50 @@
+id: core-19
+release_key: episode-19
+content_version: 0.3.1
+guid: pplstudyguide.com:core-19
+title: Cross-Country Planning, Fuel, and Diversions
+description: Build a fuel-aware VFR cross-country plan, compare actual progress with the prediction, and execute an early diversion when weather and operating trends change.
+published_at: 2026-09-21T19:42:38Z
+duration: "00:40:35"
+season: 1
+number: 19
+explicit: false
+audio:
+    staging_key: staging/core-19/8ae7b39c76633a8e005cf016eef88ac8463af95b64ef67df5a27d5eaab6e15ca.mp3
+    public_key: audio/core-19-8ae7b39c76633a8e.mp3
+    sha256: 8ae7b39c76633a8e005cf016eef88ac8463af95b64ef67df5a27d5eaab6e15ca
+    bytes: 48703417
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 31600
+    - title: Podcast introduction
+      start_ms: 70350
+    - title: What the ACS is asking you to connect
+      start_ms: 106600
+    - title: Build the preflight decision board
+      start_ms: 251510
+    - title: Complete the route-planning navigation log
+      start_ms: 476880
+    - title: Turn the navigation log into trip fuel
+      start_ms: 891610
+    - title: Give reserve a specific job
+      start_ms: 1056570
+    - title: Plan the alternative before it is needed
+      start_ms: 1243530
+    - title: Leave with an in-flight update plan
+      start_ms: 1419110
+    - title: File and activate the VFR flight plan
+      start_ms: 1523170
+    - title: Compare actual progress with the plan
+      start_ms: 1646280
+    - title: Choose and execute the diversion
+      start_ms: 1854610
+    - title: Retrieval review
+      start_ms: 2067840
+    - title: Outro
+      start_ms: 2364270
+chapters_audio_sha256: 8ae7b39c76633a8e005cf016eef88ac8463af95b64ef67df5a27d5eaab6e15ca
+source_release_seal_sha256: a4ec3b04cc72b6cb6cffe097dfc9b5e2c01f8f35429f573baf7bb487e9814911
