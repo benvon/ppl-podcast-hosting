@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-24T19:03:41.013Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-21
+    title: Private-Pilot Privileges, Limitations, and Currency
+    version: 0.1.3
+    published_at: 2026-09-24T18:54:35Z
+  source_package_files:
+    audio-manifest.yaml: 6d888e6880a9c6799ebce69bf42083903590fc30864cfddd78ce8cf67f57f9a0
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 9f13baebe64a918fb62e9e2d3471b3f5febf7d88854b8421efeee720c16185a7
+    episode.yaml: f574c0158c97331b2f90bed76541e44d3db2616a0680a34a2df663d79cfd8c29
+    hosting-metadata.yaml: 3223f00c05d74ba6236fe23a08ec1ad0e3b06eea054a4c1d60410e258a331155
+    link-validation.yaml: 7895518b830851e0bfe88a1c3f6248685a9c0ef121ec35b068a5f04682ecb49c
+    master-script.md: 58818bffd4c74ac86c4f9e4b21a7ca96ec3ad972bbc7ad8cfe69e071b4105e9f
+    narration.md: e957d59b30502e8dbf6d38c14167a5ed22e0b7552a36efbba3cf17591f028e36
+    publication-link-validation.yaml: b895e5a05f2e3322340162bc63c23ce209a86953d99a39eb96c55b210c3babcb
+    qa-checklist.md: 9841ae64148d04cb07556fb929a6866cddeb11db7a18f48dc0a4ea4c9e01a89c
+    show-notes-manifest.yaml: 41964603012b9cc8b6142542dee85622f60c8934ded09c52c4cf77eac0e44cdb
+    show-notes.md: a2c8c3043acf03cd61737115fc085fae7baf645df4f9bd593cd1472d4fcf1b0a
+    sources.yaml: 20745d779e949e36885112abd2d17b4aec785dc38153d6ce6188533e24597f4b
+  handoff_files:
+    episode.yaml: e8e911625bc9b33e25bab15cdc9b0ae4c40f96a70d429b35d76fac7a84faa93f
+    show-notes.md: a2c8c3043acf03cd61737115fc085fae7baf645df4f9bd593cd1472d4fcf1b0a
+    audio.mp3: b395251036de265aa664a00b016450bfb76615d8b6d96f60d4863bd9c5de0fe3
+  audio:
+    sha256: b395251036de265aa664a00b016450bfb76615d8b6d96f60d4863bd9c5de0fe3
+    bytes: 22394500
+payload_sha256: aaddf7c262cd42185099e15f1652e3fe92783f768e95e048bee53e1555ae30c8
