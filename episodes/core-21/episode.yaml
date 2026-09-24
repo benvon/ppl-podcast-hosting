@@ -1,0 +1,48 @@
+id: core-21
+release_key: episode-21
+content_version: 0.1.3
+guid: pplstudyguide.com:core-21
+title: Private-Pilot Privileges, Limitations, and Currency
+description: Follow a private pilot's certificate, medical, aircraft, flight-review, passenger-currency, and expense-sharing checks for a proposed trip, then decide whether the pilot is proficient enough to make it.
+published_at: 2026-09-24T18:54:35Z
+duration: "00:18:40"
+season: 1
+number: 21
+explicit: false
+audio:
+    staging_key: staging/core-21/b395251036de265aa664a00b016450bfb76615d8b6d96f60d4863bd9c5de0fe3.mp3
+    public_key: audio/core-21-b395251036de265a.mp3
+    sha256: b395251036de265aa664a00b016450bfb76615d8b6d96f60d4863bd9c5de0fe3
+    bytes: 22394500
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 23000
+    - title: Podcast introduction
+      start_ms: 62150
+    - title: What the ACS is asking you to connect
+      start_ms: 96750
+    - title: Check the pilot documents
+      start_ms: 210010
+    - title: Check the airplane before accepting it
+      start_ms: 264420
+    - title: Check the medical basis
+      start_ms: 335670
+    - title: Check the flight-review record
+      start_ms: 453430
+    - title: Check passenger takeoff and landing experience
+      start_ms: 519890
+    - title: Check the return time
+      start_ms: 599500
+    - title: Agree on the expenses before departure
+      start_ms: 670710
+    - title: Choose the flight you can manage
+      start_ms: 774710
+    - title: Retrieval review
+      start_ms: 886310
+    - title: Outro
+      start_ms: 1076430
+chapters_audio_sha256: b395251036de265aa664a00b016450bfb76615d8b6d96f60d4863bd9c5de0fe3
+source_release_seal_sha256: 89ba8a6e74ea5431f78a1f64cbdb7ef3a3c247c47bf6f061e2a8e3302d3b5e39
