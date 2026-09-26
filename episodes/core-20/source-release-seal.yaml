@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-22T17:04:37.809Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-20
+    title: Aeromedical Factors and Human Performance
+    version: 0.1.5
+    published_at: 2026-09-22T17:04:36Z
+  source_package_files:
+    audio-manifest.yaml: 195a39a9d8441c4d3bfda4116da8177732c8f2181c337490d712ea041c1e3c0d
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 1ad6e79793ee2e5f768a5fb2e1e786343970c0e53e28f961fa77f64fde5ac22c
+    episode.yaml: 7dd82b027b6f5ef0b7c0c44bb12b8fe7ca9d71bc1998419856c8aa78a2e1025a
+    hosting-metadata.yaml: 39210740b32773f7f453fc3aa9c47e13b3d34794341c5073f29a4bf9a8f9cb9e
+    link-validation.yaml: 05c5d286de66c15145571cf47bcb9446bf0a0df2dec3bf3ae490b1972b3450be
+    master-script.md: e935266b3c5eb294162d3707c9cf98a70b618459a3f2d69a8c1e06c0a536a20d
+    narration.md: 9063692eed11613f0f00e7a27e3beb0757d6d316225d5723ae123032924b7e48
+    publication-link-validation.yaml: cfdba2474d262ce266cad38cf3893f364f049465a1836cbaaaf649b422df28f7
+    qa-checklist.md: fec2b3b7c7a708a6cedd69070e790943065c4b149c518c55292e272e05602232
+    show-notes-manifest.yaml: 392a9a9978b2479bbc39da3f22374ef992f50e8b5d7590318540253b86150cbe
+    show-notes.md: e92adfac26d1e18774c4d435d4376b51a4d476709ba1b56e8860f9de70367dca
+    sources.yaml: fa65f6d73d25a9c7c356b563668e400c6b6d17a3e7f065c97a6f538b7277a4ca
+  handoff_files:
+    episode.yaml: 7f3266b829e1d9ff0529ae1d8db5949f46e4a311ea9bb88f9fb3b587ae8fe3ad
+    show-notes.md: e92adfac26d1e18774c4d435d4376b51a4d476709ba1b56e8860f9de70367dca
+    audio.mp3: 2b289933581d8a845e4061daa8a7f75640a47f47cc3da5fc0d708c17726d5a1a
+  audio:
+    sha256: 2b289933581d8a845e4061daa8a7f75640a47f47cc3da5fc0d708c17726d5a1a
+    bytes: 31026203
+payload_sha256: 525e543b885aa34059cde9d02669f3250bc5cfb48e74d5d4ffc0a7a999a0db2f

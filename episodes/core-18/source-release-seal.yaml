@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-20T20:26:06.149Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-18
+    title: VOR, GPS, Radar Services, and Navigation Systems
+    version: 0.2.5
+    published_at: 2026-09-20T20:25:51Z
+  source_package_files:
+    audio-manifest.yaml: 2521b8ef4ee2d983cfbe83581f82d7d3ab2f8b1944239d9c1e1e5ce1f5c55337
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 4b57c88485866520d62511f61bf5e00e67af7174ee4c07c5002579bd5244171c
+    episode.yaml: a185dcf315c1ddd6ae5d5806f4532a6ec342a2922d5317c1937463c4396ecf5e
+    hosting-metadata.yaml: e63b52452641038872636bd427ee1f51890c9fead5fede28f6ad0226de012f5e
+    link-validation.yaml: 709c94db58ea49e9f2aedba868347342b2dfd939087d0c192fddf27d0bc91225
+    master-script.md: 86bfad03495de3b9aa16fcc3fce9984b8fc3798613ffe8199597058fda3f2d1b
+    narration.md: 13bf6c260926cff1479919b360727e31f2d81f51252aacda9b9d625a595ac068
+    production-log.md: f99cc61410cd37f912c41216c76c063d8f26906f2cbdd991740d859293eb1893
+    publication-link-validation.yaml: 129b020277600a43cac60f39713797d117ee2596d80ab60167bb773a13a12442
+    qa-checklist.md: 8244f5984d8262fa3f0589e4f09b704fca11861abfdc4154ff715376d64e6ab8
+    research-packet.md: 2220f4d6e8aab0693c92f885125ebb72432ed45a047a5c61f9f52e25da0be6f9
+    show-notes-manifest.yaml: 5b1698d456b4d04e1020ced25f0c746da0fda0555a46d718f46241394f82dbf2
+    show-notes.md: 990797b3200719a2c02b9d01eb4c1146a6e92812650cae917407ec5ed5aaf6ae
+    sources.yaml: b20029907aad8928182303c43b86c5abad300c9f1962fd8cbd57132b86357831
+  handoff_files:
+    episode.yaml: a1ddf210dd5cd0de2b0e9ae6e38e4ab0e868b2a0d79aab72bf7e2e93cecd0be4
+    show-notes.md: 990797b3200719a2c02b9d01eb4c1146a6e92812650cae917407ec5ed5aaf6ae
+    audio.mp3: e3f7f6248b8def4719bee3e7f6ea4add17b6876439ec3f04783b1b779003bace
+  audio:
+    sha256: e3f7f6248b8def4719bee3e7f6ea4add17b6876439ec3f04783b1b779003bace
+    bytes: 37891300
+payload_sha256: 27bc7ed47a825cf5ed175965071449726f1686abfb84ed2f41ec21483b4f30f4

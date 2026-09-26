@@ -1,0 +1,44 @@
+id: core-20
+release_key: episode-20
+content_version: 0.1.5
+guid: pplstudyguide.com:core-20
+title: Aeromedical Factors and Human Performance
+description: Assess pilot fitness before departure, recognize aeromedical warning signs in flight, and choose an early landing when performance becomes uncertain.
+published_at: 2026-09-22T17:04:36Z
+duration: "00:25:51"
+season: 1
+number: 20
+explicit: false
+audio:
+    staging_key: staging/core-20/2b289933581d8a845e4061daa8a7f75640a47f47cc3da5fc0d708c17726d5a1a.mp3
+    public_key: audio/core-20-2b289933581d8a84.mp3
+    sha256: 2b289933581d8a845e4061daa8a7f75640a47f47cc3da5fc0d708c17726d5a1a
+    bytes: 31026203
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 31500
+    - title: Podcast introduction
+      start_ms: 69450
+    - title: What the ACS is asking you to connect
+      start_ms: 103300
+    - title: Make the pilot preflight specific
+      start_ms: 205360
+    - title: Set a real departure decision
+      start_ms: 444830
+    - title: Recognize the changed pilot in flight
+      start_ms: 723130
+    - title: The heater changes the decision
+      start_ms: 971560
+    - title: Use a trustworthy orientation picture
+      start_ms: 1121520
+    - title: Other human-factor questions to carry forward
+      start_ms: 1243780
+    - title: Retrieval review
+      start_ms: 1335250
+    - title: Outro
+      start_ms: 1488120
+chapters_audio_sha256: 2b289933581d8a845e4061daa8a7f75640a47f47cc3da5fc0d708c17726d5a1a
+source_release_seal_sha256: 216069e41ee55618c8f93d02315955c22cdd30de82730ca0cbd03e35968d5a6c

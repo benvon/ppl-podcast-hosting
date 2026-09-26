@@ -1,0 +1,33 @@
+schema_version: 1
+sealed_at_utc: 2026-09-21T19:42:43.953Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-19
+    title: Cross-Country Planning, Fuel, and Diversions
+    version: 0.3.1
+    published_at: 2026-09-21T19:42:38Z
+  source_package_files:
+    audio-manifest.yaml: 1ceafc1ca03cb2e83c7dbdf2aa40023b8ebcc5afe3018f149a03135e33e9004a
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 563bc9d5a4edd67bb5cb8a1722b030185735baa45389e836a6e56390d811f1ec
+    episode.yaml: 5ad7c6c64a54db603eded3ce6c3fd86d64d67c70e28e3db076c23a820177cfcc
+    hosting-metadata.yaml: 807a66b8b44d71100578dc42b1d8f02db86209c9250fa24295263e143d77e1eb
+    link-validation.yaml: 6fc1b395ee1c5ded4c27ab26180d0356f80b47804451200893e8780ff303f9bf
+    master-script.md: d7532d627c9bc7fca1f88059a7cde7a0f59b3da7a40371d7adb07beed46d429f
+    narration.md: b34ab03475fb4c1b041c60fd3d9aa2928a87168d92e4fdd2ba96b267d1a6038d
+    production-log.md: 785d3522e920c312c119c8d709ca58410d0e405bc75ba07b77d06987952b0c31
+    publication-link-validation.yaml: cdba3b3c1a25d19bd4dcfa99e4f6defdfa8eb7a585c88215d8811c0a058156cf
+    qa-checklist.md: 714aed7e6eeda12b336c43ae0704da409e8d73b2e871239ab9bdfccc6a912566
+    research-packet.md: a21ae1f8cb206871157f8f58c0f092c92b10e6062f3fee381b414ca6d22b00e5
+    show-notes-manifest.yaml: d404515992df74eee4528e576be5daf6e3f1c185d60e1376f1ae0e1add656c87
+    show-notes.md: 61e8e6f88259ef0c19de7458dcb695b3ebf947e5a08cc351c4a40022087f26f2
+    sources.yaml: 37485895e8f55a387d7f496b8b19dd59e07ecb6f02371622f31a1fa0764afd84
+  handoff_files:
+    episode.yaml: 7cb8649cb02c97961c422428f743bc91413f1d0e50f98dbd373f92ddd71c57ae
+    show-notes.md: 61e8e6f88259ef0c19de7458dcb695b3ebf947e5a08cc351c4a40022087f26f2
+    audio.mp3: 8ae7b39c76633a8e005cf016eef88ac8463af95b64ef67df5a27d5eaab6e15ca
+  audio:
+    sha256: 8ae7b39c76633a8e005cf016eef88ac8463af95b64ef67df5a27d5eaab6e15ca
+    bytes: 48703417
+payload_sha256: 5b8377a6623f0628d9d1c5583b86fc2b85beaef64aecd0f32b0155459967faf7
