@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-09-28T17:50:14.055Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-22
+    title: VFR Operating Rules and Preflight Responsibilities
+    version: 0.1.9
+    published_at: 2026-09-28T17:49:33Z
+  source_package_files:
+    audio-manifest.yaml: add88167350a25605360bb3036f8ed5ce28656f133a0811c569ba8d3f849fe56
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 6c71bcdfc14dbbbe6dc259deb6c07a33fbf06e237d406a81c81a75507fe34b44
+    episode.yaml: c21e145441c328302836f5012bfe833fc7285bc476e62fc11d4809a0c23622f5
+    hosting-metadata.yaml: 1ad8f4bc538b960dca1cda6e1c18e839018e9a37e8f39b8c94af31207e436162
+    link-validation.yaml: a76d848e94d3743d28c52d84fd6662df8667fe2e2c07e280210557675d28f8d0
+    master-script.md: bfbf5843fa0f7cee1f3805e3c7da49db3d047d917a0009e0590d8cab57742bfa
+    narration.md: a2eaf0d55b4e986044eab92676fe2ad247641199dae2fb35901f964f63e5d1ee
+    publication-link-validation.yaml: 237444a89abdfd902c3587c1df07e8e4fbaab5cbf3497b0d700a11a2da290a70
+    qa-checklist.md: abd8120c6bf14486d15cbb67988357268a2792bc68bcdcfcc8bf7d66a30a231c
+    show-notes-manifest.yaml: 7d0544792cc4d9463c7469f3e8d341bb94990c841a14121fa0d250bd6d475044
+    show-notes.md: 72e290da698c6d5fbc9ec68738f0301cf6b9690ec2426f7a92db6487d744605e
+    sources.yaml: 90b5395b27b752272c30bb604a9a7c5b6ca00dc76b7c61037ffcad96320e3822
+  handoff_files:
+    episode.yaml: 16a624ba6381a23d729744c0bec983548fd221e2b242de10b4b9c1dd9cd7acbb
+    show-notes.md: 72e290da698c6d5fbc9ec68738f0301cf6b9690ec2426f7a92db6487d744605e
+    audio.mp3: d39228604618be0856a4d0db23d60746e0fd5d64b7c5ae8413e5e05a07fe62f1
+  audio:
+    sha256: d39228604618be0856a4d0db23d60746e0fd5d64b7c5ae8413e5e05a07fe62f1
+    bytes: 40337747
+payload_sha256: 3154ffa81702c6c94013d4ffce42d31256e8fea3ccee594c031749a9beeb06b9
