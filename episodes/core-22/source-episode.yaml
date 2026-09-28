@@ -1,0 +1,43 @@
+id: core-22
+guid: pplstudyguide.com:core-22
+title: VFR Operating Rules and Preflight Responsibilities
+description: Elena and Jonah prepare a daytime VFR flight. A failed display
+  changes the airplane and its loading check, a runway closure changes the
+  destination, and a stronger headwind leads to an early fuel stop. The delay
+  cancels their gathering, so Elena replans a daylight flight home before
+  sunset. The lesson connects Part 91 preflight and operating rules to those
+  decisions.
+published_at: 2026-09-28T17:49:33Z
+duration: 00:33:37
+season: 1
+number: 22
+explicit: false
+audio: {}
+release_key: episode-22
+content_version: 0.1.9
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 30450
+  - title: Podcast introduction
+    start_ms: 68800
+  - title: What the ACS is asking you to connect
+    start_ms: 103600
+  - title: Decide who owns the flight decision
+    start_ms: 228360
+  - title: Change airplanes when a display fails
+    start_ms: 331620
+  - title: Make the preflight information specific to this flight
+    start_ms: 478860
+  - title: Plan the route and cruising altitude
+    start_ms: 911950
+  - title: Brief Jonah before the airplane moves
+    start_ms: 1222570
+  - title: Keep the plan open to new information
+    start_ms: 1410200
+  - title: Retrieval review
+    start_ms: 1739370
+  - title: Outro
+    start_ms: 1974900
+chapters_audio_sha256: d39228604618be0856a4d0db23d60746e0fd5d64b7c5ae8413e5e05a07fe62f1
