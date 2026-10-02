@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-10-02T16:51:26.514Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-23
+    title: Emergencies and Abnormal Situations
+    version: 0.1.2
+    published_at: 2026-10-02T16:50:51Z
+  source_package_files:
+    audio-manifest.yaml: fe2bc7f522128639929d04de48019149a762449aea6d853a626d31f034a054ba
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: 62c6b467ec2f67fb77e2ad14470a204c42cc19bfa0f092716b2911aea9184769
+    episode.yaml: 48e9d2bf08d1f4b295b7aa9995bf7931b5a3edd13a000e00470ae0009a89fcf5
+    hosting-metadata.yaml: cf4a3b80e193f1a3b176547374dcb55398abc4041247aad60e44df729f94ad45
+    link-validation.yaml: 22732a25a9b70813b03946e9d12725e20e4c12594c32d7471262c4bf7d3c8dfa
+    master-script.md: 3a98eaafbe1bc21cb90550b9e2c3d372059fe4e7ee22330766e2fc8fb54106d3
+    narration.md: b6c4d9923518fa54a35adf3b16083c2598f7acdf38c9c06c60b38c23a45cda14
+    publication-link-validation.yaml: 31518b93750e7f41a10204840c2d63129cf54c5d91e9d256ae0c3bf4e23b5d20
+    qa-checklist.md: 5067625e687301902ad9ce6784c79a445a7ef671a483982b43f538a3a37063b4
+    show-notes-manifest.yaml: fffb39e99cc463185ec02c603979bf7dcbe607cf784e69b75ce7fdc12f150b38
+    show-notes.md: bebaedda6191e412f93a05993053751eb3f986e1a9188a85d34b20055f471dcb
+    sources.yaml: 8f1e3d1f31c6408f1faf309f5b13f1ee59a7cd973c26cd71c9745afd9bca043c
+  handoff_files:
+    episode.yaml: 9c47732474b56d9734e979d7cb5a9b5e572ee70a67f9b84106ae8fd687f3543f
+    show-notes.md: bebaedda6191e412f93a05993053751eb3f986e1a9188a85d34b20055f471dcb
+    audio.mp3: 9fc73a0fa42091639bbf3453b13f636ab1f07216bd9367de876f5eb1614c0d7f
+  audio:
+    sha256: 9fc73a0fa42091639bbf3453b13f636ab1f07216bd9367de876f5eb1614c0d7f
+    bytes: 28399810
+payload_sha256: 5c6076f2fbead22900170944c23fa3567b71ff31472660eea178b7e824697e38
