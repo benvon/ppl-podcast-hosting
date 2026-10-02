@@ -1,0 +1,48 @@
+id: core-23
+release_key: episode-23
+content_version: 0.1.2
+guid: pplstudyguide.com:core-23
+title: Emergencies and Abnormal Situations
+description: A scenario-led study of early precautionary landing, power-loss landing choices, emergency communication, and aircraft-specific emergency procedures.
+published_at: 2026-10-02T16:50:51Z
+duration: "00:23:40"
+season: 1
+number: 23
+explicit: false
+audio:
+    staging_key: staging/core-23/9fc73a0fa42091639bbf3453b13f636ab1f07216bd9367de876f5eb1614c0d7f.mp3
+    public_key: audio/core-23-9fc73a0fa4209163.mp3
+    sha256: 9fc73a0fa42091639bbf3453b13f636ab1f07216bd9367de876f5eb1614c0d7f
+    bytes: 28399810
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 30450
+    - title: Podcast introduction
+      start_ms: 68400
+    - title: What the ACS is asking you to connect
+      start_ms: 99050
+    - title: Prepare for the route before departure
+      start_ms: 237910
+    - title: Recognize rough running early
+      start_ms: 342270
+    - title: Ask for help while there is time
+      start_ms: 491670
+    - title: Keep the airplane flying after power loss
+      start_ms: 670210
+    - title: Choose a landing area within reach
+      start_ms: 761520
+    - title: Prepare to land and protect the occupants
+      start_ms: 905050
+    - title: Compare an electrical failure
+      start_ms: 983320
+    - title: When smoke changes the descent decision
+      start_ms: 1062280
+    - title: Retrieval review
+      start_ms: 1154340
+    - title: Outro
+      start_ms: 1377560
+chapters_audio_sha256: 9fc73a0fa42091639bbf3453b13f636ab1f07216bd9367de876f5eb1614c0d7f
+source_release_seal_sha256: e1951afd99f2b67847eec60b5bc9ea002c6a0ce1adc72a4f5ba88b395943eba2
