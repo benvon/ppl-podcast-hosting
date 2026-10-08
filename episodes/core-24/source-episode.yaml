@@ -1,0 +1,46 @@
+id: core-24
+guid: pplstudyguide.com:core-24
+title: Night Operations
+description: "Follow a familiar route after dark: prepare night vision, pilot
+  and aircraft readiness, weather, terrain, fuel and airport lighting, then use
+  reliable references for navigation and a dark-terrain approach."
+published_at: 2026-10-08T14:56:00Z
+duration: 00:37:59
+season: 1
+number: 24
+explicit: false
+audio: {}
+release_key: episode-24
+content_version: 0.1.3
+chapters:
+  - title: Opening
+    start_ms: 0
+  - title: Disclaimer
+    start_ms: 28500
+  - title: Podcast introduction
+    start_ms: 66150
+  - title: What the ACS is asking you to connect
+    start_ms: 97750
+  - title: Decide whether the pilot is ready
+    start_ms: 216460
+  - title: Prepare eyes and cockpit for darkness
+    start_ms: 474720
+  - title: Verify the airplane and its lights
+    start_ms: 668860
+  - title: Build a route with a usable alternative
+    start_ms: 861110
+  - title: Know what the airport lights will tell you
+    start_ms: 1059710
+  - title: Taxi and climb with fewer outside references
+    start_ms: 1390890
+  - title: Compare the flight with the prepared route
+    start_ms: 1526450
+  - title: Use the prepared arrival over dark terrain
+    start_ms: 1683670
+  - title: Protect a landing option if equipment fails
+    start_ms: 1874570
+  - title: Retrieval review
+    start_ms: 2016620
+  - title: Outro
+    start_ms: 2237180
+chapters_audio_sha256: 0fa42a3f4364c5872f642e249810634191bc1f98ea9a0e83e362d295ca330d95
