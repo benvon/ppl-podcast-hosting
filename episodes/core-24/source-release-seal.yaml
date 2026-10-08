@@ -1,5 +1,5 @@
 schema_version: 1
-sealed_at_utc: 2026-10-08T14:55:48.271Z
+sealed_at_utc: 2026-10-08T15:03:41.780Z
 payload:
   schema_version: 1
   episode:
@@ -11,21 +11,21 @@ payload:
     audio-manifest.yaml: b1646ab74d13b8a595bd12d6585ca7c537f365c95e66d14cca5337ff84aba0ae
     audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
     claim-inventory.yaml: c9d3eb3ebc80ea6f75b01fd057b7295fb311bdff6d62a5024e4f231babbc5a79
-    episode.yaml: be3a4cab82ad5036a73b822e2f866a179170ec28c631bca561ed8955810bf650
+    episode.yaml: 5ec7b934eaac0a1b6b6e3938c82b905de1997378d238aea9affaa44e7d04a45d
     hosting-metadata.yaml: aff27748194decab3e14872a688bf2b2777782208d4333ccd2fa2b666b785bba
     link-validation.yaml: b96c660cfc2f80393336c9e60c84a66e15d3934a152cdea445ed8eef314ea707
     master-script.md: ad4e139d98d35a13b2ebdf7484f0698ddd394a0de1b5610495fd2a4c1bb8bdbc
     narration.md: 2589b0b5990544e04ec69ac8f00f003d012692e07d5290ac01e7971dd70b1b66
-    publication-link-validation.yaml: 81601d7922c02927903c59f7cc16680ce55b6f29bbf700f2d57b315f05e23640
+    publication-link-validation.yaml: 2decd5473362bb8f35df12b2aca6cd920b8048ea776fd593569ef2e8ea39f6ee
     qa-checklist.md: b35af851c942447c37d9181762b7d47b8386a415ebc90761a505e6edc28e1d84
     show-notes-manifest.yaml: 3c8b3d8bccda1747ed3da0976a26475e64a1ad285d123da3b1922672d625d0c3
-    show-notes.md: 3aed759a2cbe8e6d25c9f3904764f308fe0f1504af5db33eade8a0639dc877b5
+    show-notes.md: d2edb9eadb0e728f69ee4011afd46e9510ce4fbd58b06cbfaa6db9b1b1bb8a0f
     sources.yaml: 4b4c2c194db1017611f2bc5e6b5ca7ebbacdc74bf300ae40fff2ec9321b30f48
   handoff_files:
     episode.yaml: 9313d6e4514069d421b6ee43060f9a22f1c84f22e501e8a02c4c8b47812bea76
-    show-notes.md: 3aed759a2cbe8e6d25c9f3904764f308fe0f1504af5db33eade8a0639dc877b5
+    show-notes.md: d2edb9eadb0e728f69ee4011afd46e9510ce4fbd58b06cbfaa6db9b1b1bb8a0f
     audio.mp3: 0fa42a3f4364c5872f642e249810634191bc1f98ea9a0e83e362d295ca330d95
   audio:
     sha256: 0fa42a3f4364c5872f642e249810634191bc1f98ea9a0e83e362d295ca330d95
     bytes: 45581531
-payload_sha256: 25d210e5a43908e034b28f91f5f445506ae1c26681315b5c1ebf52d99ec73922
+payload_sha256: eb66dab57978757c5d7116bd53f5a0903a48e65960cc41fa464892645132e68c
