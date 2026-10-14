@@ -1,5 +1,5 @@
 [tools]
-go = "1.26.8"
+go = "1.26.9"
 jq = "1.8.2"
 
 [tasks.validate]
