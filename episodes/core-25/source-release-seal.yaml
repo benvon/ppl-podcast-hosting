@@ -1,0 +1,31 @@
+schema_version: 1
+sealed_at_utc: 2026-10-15T21:21:58.242Z
+payload:
+  schema_version: 1
+  episode:
+    id: core-25
+    title: "The Checkride Oral: Connecting Knowledge, Risk, and Skill"
+    version: 0.1.3
+    published_at: 2026-10-15T21:21:48Z
+  source_package_files:
+    audio-manifest.yaml: ff2edfbe2b2e9a8f8b242d521772ccf877569468a8b9c5fec86fe7bb8981bd36
+    audio-mix.yaml: f1286fae3500cb6cca9996104b7421877185cef4c7b8cc9f8369a4df2c1b84b7
+    claim-inventory.yaml: eaf32d7434e8088f4179bb8449ae16fbf1360e2652bad0a6d0c04eeb766aa87f
+    episode.yaml: 361cf72c3320271754d1cb358ec0cd38544f5a313b60662c82a7569e522d904b
+    hosting-metadata.yaml: ee1aefb13d685761cea42f38fb4f6a185b7a46536ff1aff92af9125d62501ffd
+    link-validation.yaml: 9d4d5792f042e33b9b40ed78cb0af9f6eab2cb3904eaf2b7acecebc99acd19db
+    master-script.md: 472aae9eac5d00732f0109cb6278490a8b0c322e4456e426fac868ad3599e6a7
+    narration.md: 96bd708f97546b4e74779cb118dabb0c977102414d003723ac5c66289a34fcd0
+    publication-link-validation.yaml: 00bce63bdf892c0c3b1788ea4a83aa1540203349a231fb706f704164ef05839d
+    qa-checklist.md: b43cf8336b7b81ec73c234c69c04067ab9bd12353bbb2f47139113deb724fe61
+    show-notes-manifest.yaml: bbbdb3237cdeceffacaa777eb11f71d0f30f82b42e050f321be2a7f2155be307
+    show-notes.md: 12ad365ee06ac242182f2cc97c360adbd6573799560f0d274439a66781be7a27
+    sources.yaml: f0dba8697a02e4cb177669242a0974b34d0bdb132b9e1d4a5717f9f842c5a483
+  handoff_files:
+    episode.yaml: b89bede3b881604d6523ad596ed4cad9fd25d6ac2046ef24f3e0315b9f2fa46e
+    show-notes.md: 12ad365ee06ac242182f2cc97c360adbd6573799560f0d274439a66781be7a27
+    audio.mp3: 01902238e0aecbfd147eeebad93c4ff146b33e67f98581af49f37eac342b87b4
+  audio:
+    sha256: 01902238e0aecbfd147eeebad93c4ff146b33e67f98581af49f37eac342b87b4
+    bytes: 49678126
+payload_sha256: 2de53e8166c7561632261b52776d68bb157a94d51b4b66f19fff3892c6f0ce5c
