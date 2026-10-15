@@ -1,0 +1,56 @@
+id: core-25
+release_key: episode-25
+content_version: 0.1.3
+guid: pplstudyguide.com:core-25
+title: 'The Checkride Oral: Connecting Knowledge, Risk, and Skill'
+description: An examiner-style conversation follows a proposed daytime cross-country, connecting knowledge, risk management, and flight skills as weather, loading, fuel, and landing choices change.
+published_at: 2026-10-15T21:21:48Z
+duration: "00:41:24"
+season: 1
+number: 25
+explicit: false
+audio:
+    staging_key: staging/core-25/01902238e0aecbfd147eeebad93c4ff146b33e67f98581af49f37eac342b87b4.mp3
+    public_key: audio/core-25-01902238e0aecbfd.mp3
+    sha256: 01902238e0aecbfd147eeebad93c4ff146b33e67f98581af49f37eac342b87b4
+    bytes: 49678126
+    content_type: audio/mpeg
+chapters:
+    - title: Opening
+      start_ms: 0
+    - title: Disclaimer
+      start_ms: 28700
+    - title: Podcast introduction
+      start_ms: 65800
+    - title: What the ACS is asking you to connect
+      start_ms: 98100
+    - title: Explain the proposed flight before defending it
+      start_ms: 244510
+    - title: Connect the pilot's records with today's readiness
+      start_ms: 363940
+    - title: Make the airplane decision from evidence
+      start_ms: 513330
+    - title: Turn the weather briefing into a decision
+      start_ms: 682300
+    - title: Recalculate when the load changes
+      start_ms: 862760
+    - title: Give the fuel plan a usable alternative
+      start_ms: 1032700
+    - title: Prepare the cockpit before adding workload
+      start_ms: 1187170
+    - title: Compare the airborne flight with the plan
+      start_ms: 1331250
+    - title: Make the diversion while it is useful
+      start_ms: 1481590
+    - title: Explain what a system failure changes
+      start_ms: 1591970
+    - title: Connect the approach with the wing's limits
+      start_ms: 1777480
+    - title: Finish the flight and use the debrief
+      start_ms: 1973580
+    - title: Retrieval review
+      start_ms: 2162990
+    - title: Outro
+      start_ms: 2441010
+chapters_audio_sha256: 01902238e0aecbfd147eeebad93c4ff146b33e67f98581af49f37eac342b87b4
+source_release_seal_sha256: 97a8eeeadc42d116cf3f7993c581b421894b111046c29c80170e866a02ec0a87
